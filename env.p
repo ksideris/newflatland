@@ -1,2 +1,0 @@
-S"(dp1\nI173954764\n(igame.player\nPlayer\np2\n(dp3\nS'action'\np4\nI0\nsS'team'\np5\nI1\nsS'player_id'\np6\nI1\nsS'position'\np7\n(igame.vector\nVector2D\np8\n(dp9\nS'y'\nI0\nsS'x'\nI20\nsbsS'sides'\np10\nI3\nsS'resources'\np11\nI0\nsbs.$(dp1\nI173954828\n(igame.player\nBuilding\np2\n(dp3\nS'position'\np4\n(igame.vector\nVector2D\np5\n(dp6\nS'y'\nI0\nsS'x'\nI0\nsbsS'size'\np7\nI1\nsS'sides'\np8\nI3\nsS'resources'\np9\nI0\nsS'team'\np10\nI1\nsbs."
-.
