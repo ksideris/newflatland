@@ -13,7 +13,6 @@ the observe_ prefixed function will get called by all the other players, server 
 import pygame
 from vector import Vector2D
 from game.player import Player,Building,ResourcePool
-from game.network.server import GameState
 from twisted.internet.task import LoopingCall
 
 import time
@@ -34,7 +33,6 @@ class Environment(): #in an MVC system , this would be a controller
 		self.width = 80.0
 		self.height = 48.0
 		self.view =None
-		self.server = None
 		self.ResourcePool = ResourcePool()
 		
 
@@ -73,15 +71,28 @@ class Environment(): #in an MVC system , this would be a controller
 
 		for p in self.players.itervalues(): # draw all players. TODO : should i restrict to viewport for speed?
 			p.draw(view,view.screenCoord(p.position))
-	
+		
 	def Update(self):
-		pickle.dump( self.ccSerialize(), open( "env.p", "wb" ) )
+		
+		
+		pickle.dump( self.cSerialize(), open( "env.p", "wb" ) )
+		
+		
+		'''try:
+			gestures = pickle.load(  open( "gest.p", "rb" ) ) 
+			if(len(gestures)>0):		
+				print 'read',gestures
+			pickle.dump( [], open( "gest.p", "wb" ) )
+		except Exception:
+			print Exception
+		'''
 		#TODO Receive actions # for server . Probably async
 		# update state 		  #
 		# send state 		  # client receives and then updates . Probably async
 		self.view.paint()
 	
 	def start(self):
+		pickle.dump( [], open( "gest.p", "wb" ) )
 		self.view.start('Server')
 		self._renderCall = LoopingCall(self.Update) #TODO can i avoid it?
 		self._renderCall.start(0.03)	
@@ -94,7 +105,20 @@ class Environment(): #in an MVC system , this would be a controller
 			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position[0])+'&'+str( b.position[1])+'&'+str(b.sides)+'&'+str(b.resources )+'$'
 		return s
 
+	def cSerialize(self):
+		s =''
+		s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)
+		return s
+
 	
 
+	def serialize(self):
+		s =''
+		for p in self.players.itervalues():
+			s+= pickle.dumps(p)+'$'
+		for b in self.buildings.itervalues():
+			s+= pickle.dumps(b)+'$'
+		
+		return s
 	
  

@@ -15,15 +15,11 @@ tenv.createPlayer(1)
 
 tenv.createBuilding(1)
 a=view.Window(tenv)
-s = Server()
-try:
-	t=Thread(target=s.start, args=('192.168.1.102','7022'))
-	t.start()
+
+t=Thread(target=Server().start, args=('192.168.1.102','7022'))
+t.start()
 	
-	tenv.start()
-	reactor.run()
-except (KeyboardInterrupt, SystemExit):
-	t.stop()
-	sys.exit()
+tenv.start()
+reactor.run()
 
 

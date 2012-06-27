@@ -1,58 +1,38 @@
 #!/usr/bin/env python
 #
-# Downloads a large file in chunked encoding with both curl and simple clients
+# The core networking module. Transmits the serialized state to the clients-phones and reads their
 
 import logging
-from tornado.curl_httpclient import CurlAsyncHTTPClient #not necessary - should remove
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from tornado.ioloop import IOLoop
-from tornado.options import define, options, parse_command_line #not necessary - should remove
 from tornado.web import RequestHandler, Application
+import cPickle as pickle,time
 
 
-class GameState():
-	def __init__(self,environment):
-		self.environment = environment
-		
-		
-	'''This should not be here. It should go under the server'''
-	def serialize(self):
-		s =''
-		for p in self.environment.players.itervalues():
-			s+= pickle.dumps(p)+'$'
-		for b in self.environment.buildings.itervalues():
-			s+= pickle.dumps(b)+'$'
-		
-		return s
 
-	def cSerialize(self):
-		s =''
-		s=pickle.dumps(self.environment.players)+'$'+pickle.dumps(self.environment.buildings)
-		return s
-
-	def ccSerialize(self):
-		s=''
-		for p in self.environment.players.itervalues():
-			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position[0])+'&'+str( p.position[1])+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
-		for b in self.environment.buildings.itervalues():
-			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position[0])+'&'+str( b.position[1])+'&'+str(b.sides)+'&'+str(b.resources )+'&'+str(b.action)+'$'
-		return s
-
-_gamestate =None
 class GameStateTransmitter(RequestHandler):
 
 	def get(self):
-		
+		gest= self.request.arguments
 		env = pickle.load(  open( "env.p", "rb" ) )  
+		
 		if(env<>None):
 			self.write(env)
 		else:
 			self.write('move along sir,nothing to see here')
-		print 'a'
 		self.flush()
 		
 		self.finish()
-
+		'''try:
+			gestures = pickle.load(  open( "gest.p", "rb" ) ) 
+			gestures.append((self.request.arguments['action'],time.time()))
+			if(len(gestures)>10):
+				gestures=gestures[1:]
+			pickle.dump(gestures, open( "gest.p", "wb" ) )
+		except Exception:
+			print Exception
+		'''
+		#print gestures
 class Server():
 
 	def start(self,server_address,server_port):
