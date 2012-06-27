@@ -26,8 +26,9 @@ def loadImage(path):
 
 
 class Window(object):
-    def __init__(self):#, environment):
-        #self.environment = environment
+    def __init__(self, environment):
+        self.environment = environment
+        self.environment.view = self
         self.images = Images(FilePath("data").child("img2"))
         self.images.load()
         self.center = Vector2D((0,0))
@@ -54,7 +55,7 @@ class Window(object):
                 self.screen.blit(bg._image, pygame.Rect(x, j, bgWidth, bgHeight))
                 j += bgHeight
             x += bgWidth
-        #self.environment.paint(self)
+        self.environment.draw(self)
        
         pygame.display.flip()
 
@@ -78,7 +79,7 @@ class Window(object):
     def start(self, title):
         self.screen = pygame.display.get_surface()
         pygame.display.set_caption(title)
-        self._renderCall = LoopingCall(self.paint)
+        self._renderCall = LoopingCall(self.paint) #TODO can i avoid it?
         self._renderCall.start(0.03)
         
         (cx, cy) = self.screen.get_rect().center

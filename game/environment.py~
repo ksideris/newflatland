@@ -12,24 +12,35 @@ the observe_ prefixed function will get called by all the other players, server 
 
 import pygame
 from vector import Vector2D
-from game.player import Player,Building
+from game.player import Player,Building,ResourcePool
+from game.network.server import GameState
+from twisted.internet.task import LoopingCall
 
 import time
 import cPickle as pickle
 
 GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
 
-class Environment():
-    
+class Environment(): #in an MVC system , this would be a controller
+	''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
 	NEXT_PLAYER_ID=1
     
 	def __init__(self):
-		self.observers = []
-		self.players = {}
-		self.buildings = {}
-		self.state = ''
+		'''State: Players,Buildings, Time, Resourse Pool'''
+		self.players 	= {}
+		self.buildings 	= {}
+		self.TimeLeft = 0 
+		
+		self.width = 80.0
+		self.height = 48.0
+		self.view =None
+		self.server = None
+		self.ResourcePool = ResourcePool()
+		
 
+	#Helper Functions
 	def createPlayer(self, team):
+		'''add a player to the given team'''
 		player = Player()
 		player.team = team
 
@@ -42,6 +53,7 @@ class Environment():
 		return player
 
 	def createBuilding(self, team):
+		'''add a building to the given team'''
 		building = Building()
 		building.team = team
 		bid = id(building)
@@ -49,26 +61,40 @@ class Environment():
         
 		return building
 
-	def Serialize(self):
-		s =''
-		for playerId in self.players:
-			s+= pickle.dumps(self.players[playerId])+'$'
-		for buildingId in self.buildings:
-			s+= pickle.dumps(self.buildings[buildingId])+'$'
-		return s
+	
+	def draw(self,view):
+		'''Draw the state of the environment. This is called by view after drawing the background. 
+		   This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
+		
+		self.ResourcePool.draw(view,view.screenCoord(Vector2D(0,0)))
 
-	def cSerialize(self):
-		s =''
-		s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)
-		return s
+		for b in self.buildings.itervalues():# draw all buildings. TODO : should i restrict to viewport for speed?
+			b.draw(view,view.screenCoord(b.position))
+
+		for p in self.players.itervalues(): # draw all players. TODO : should i restrict to viewport for speed?
+			p.draw(view,view.screenCoord(p.position))
+	
+	def Update(self):
+		pickle.dump( self.ccSerialize(), open( "env.p", "wb" ) )
+		#TODO Receive actions # for server . Probably async
+		# update state 		  #
+		# send state 		  # client receives and then updates . Probably async
+		self.view.paint()
+	
+	def start(self):
+		self.view.start('Server')
+		self._renderCall = LoopingCall(self.Update) #TODO can i avoid it?
+		self._renderCall.start(0.03)	
+
 	def ccSerialize(self):
 		s=''
-		for playerId in self.players:
-			s+= str(self.players[playerId].player_id)+'&'+str(self.players[playerId].team)+'&'+str(self.players[playerId].position[0])+'&'+str( self.players[playerId].position[1])+'&'+str(self.players[playerId].sides)+'&'+str(self.players[playerId].resources )+'&'+str(self.players[playerId].action)+'$'
-		for buildingId in self.buildings:
-			s+= str(self.players[playerId].player_id)+'&'+str(self.players[playerId].team)+'&'+str(self.players[playerId].position[0])+'&'+str( self.players[playerId].position[1])+'&'+str(self.players[playerId].sides)+'&'+str(self.players[playerId].resources )+'&'+str(self.players[playerId].action)+'$'
+		for p in self.players.itervalues():
+			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position[0])+'&'+str( p.position[1])+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
+		for b in self.buildings.itervalues():
+			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position[0])+'&'+str( b.position[1])+'&'+str(b.sides)+'&'+str(b.resources )+'&'+str(b.action)+'$'
 		return s
 
+	
 
 	
  
