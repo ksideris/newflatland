@@ -2,7 +2,6 @@ import pygame
 import game.view as view
 import game.environment as environment
 from twisted.internet import reactor
-from game.network.server import Server
 from threading import Thread
 import sys
 
@@ -16,9 +15,7 @@ tenv.createPlayer(1)
 tenv.createBuilding(1)
 a=view.Window(tenv)
 
-t=Thread(target=Server().start, args=('192.168.1.102','7022'))
-t.start()
-	
+
 tenv.start()
 reactor.run()
 

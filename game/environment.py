@@ -16,7 +16,7 @@ from game.player import Player,Building,ResourcePool
 from twisted.internet.task import LoopingCall
 
 import time
-import cPickle as pickle
+import pickle,sys #TODO change to cPickle for speed
 
 GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
 
@@ -74,35 +74,46 @@ class Environment(): #in an MVC system , this would be a controller
 		
 	def Update(self):
 		
-		
-		pickle.dump( self.cSerialize(), open( "env.p", "wb" ) )
-		
-		
-		'''try:
-			gestures = pickle.load(  open( "gest.p", "rb" ) ) 
-			if(len(gestures)>0):		
-				print 'read',gestures
-			pickle.dump( [], open( "gest.p", "wb" ) )
-		except Exception:
-			print Exception
-		'''
-		#TODO Receive actions # for server . Probably async
-		# update state 		  #
-		# send state 		  # client receives and then updates . Probably async
+		self.writeStateToServer()
+		self.readStateFromServer()
+		self.processNewState()
 		self.view.paint()
 	
+	def processNewState(self):
+		for action in self.actions:
+			print action
+	
 	def start(self):
-		pickle.dump( [], open( "gest.p", "wb" ) )
+		'''controls the environment by initiating the looping calls'''
+
+		pickle.dump( [], open( "ServerOut.p", "wb" ) )
 		self.view.start('Server')
 		self._renderCall = LoopingCall(self.Update) #TODO can i avoid it?
 		self._renderCall.start(0.03)	
 
-	def ccSerialize(self):
+
+	#FUNCTIONS FOR NETWORKING
+	def writeStateToServer(self):
+				
+		pickle.dump( self.Serialize(), open( "ServerIn.p", "wb" ) )
+		
+		
+	def readStateFromServer(self):
+				
+		try:
+			self.actions = pickle.load(  open( "ServerOut.p", "rb" ) ) 
+			if(len(self.actions)>0):		
+				print 'read',self.actions
+			pickle.dump( [], open( "ServerOut.p", "wb" ) )
+		except Exception:
+			print 'env1',sys.exc_info()[0]
+	
+	def Serialize(self):
 		s=''
 		for p in self.players.itervalues():
-			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position[0])+'&'+str( p.position[1])+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
+			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
 		for b in self.buildings.itervalues():
-			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position[0])+'&'+str( b.position[1])+'&'+str(b.sides)+'&'+str(b.resources )+'$'
+			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
 		return s
 
 	def cSerialize(self):
@@ -112,7 +123,7 @@ class Environment(): #in an MVC system , this would be a controller
 
 	
 
-	def serialize(self):
+	def _serialize(self):
 		s =''
 		for p in self.players.itervalues():
 			s+= pickle.dumps(p)+'$'
