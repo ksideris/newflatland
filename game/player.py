@@ -13,13 +13,13 @@ work, and thus, sounds only play for the client.
 import math
 import pygame.mixer
 from vector import Vector2D
-
+import random
 
 class Player():
 	def __init__(self):
 		self.player_id=-1
 		self.team=0
-		self.position = Vector2D(20, 0) # this should range from -1,-1 to 1,1
+		self.position = Vector2D(random.randint(1, 10), random.randint(1, 10)) # this should range from -1,-1 to 1,1
 		self.sides = 3
 		self.resources = 0
 		self.action = 0 #Convention Idle - 0 ,Moving - 1, Attacking - 2, Building/Mining - 3,Scanning - 4 

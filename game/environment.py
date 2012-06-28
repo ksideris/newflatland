@@ -73,7 +73,10 @@ class Environment(): #in an MVC system , this would be a controller
 			p.draw(view,view.screenCoord(p.position))
 		
 	def Update(self):
-		
+		for p in self.players.itervalues():
+				p.position+=Vector2D(.2,0)
+                if(p.position[0]>20 or p.position[1]>20 ):
+                    p.position+=Vector2D(-40,0)
 		self.writeStateToServer()
 		self.readStateFromServer()
 		self.processNewState()
@@ -95,15 +98,15 @@ class Environment(): #in an MVC system , this would be a controller
 	#FUNCTIONS FOR NETWORKING
 	def writeStateToServer(self):
 				
-		pickle.dump( self.Serialize(), open( "ServerIn.p", "wb" ) )
+		pickle.dump( self.cSerialize(), open( "ServerIn.p", "wb" ) )
 		
 		
 	def readStateFromServer(self):
 				
 		try:
 			self.actions = pickle.load(  open( "ServerOut.p", "rb" ) ) 
-			if(len(self.actions)>0):		
-				print 'read',self.actions
+			#if(len(self.actions)>0):		
+			#	print 'read',self.actions
 			pickle.dump( [], open( "ServerOut.p", "wb" ) )
 		except Exception:
 			print 'env1',sys.exc_info()[0]
@@ -114,11 +117,13 @@ class Environment(): #in an MVC system , this would be a controller
 			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
 		for b in self.buildings.itervalues():
 			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
+        
 		return s
 
 	def cSerialize(self):
-		s =''
-		s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)
+		
+		s=pickle.dumps(self.players)#+'$'+pickle.dumps(self.buildings)
+		print len(s),s		
 		return s
 
 	

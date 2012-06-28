@@ -55,9 +55,25 @@ class Window(object):
                 self.screen.blit(bg._image, pygame.Rect(x, j, bgWidth, bgHeight))
                 j += bgHeight
             x += bgWidth
-        self.environment.draw(self)
-       
+        self.drawEnvironment()
+       	
         pygame.display.flip()
+
+
+    def drawEnvironment(self):
+		'''Draw the state of the environment. This is called by view after drawing the background. 
+		   This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
+		
+		self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
+
+		for b in self.environment.buildings.itervalues():
+		# draw all buildings. TODO : should i restrict to viewport for speed?
+			b.draw(self,self.screenCoord(b.position))
+
+		for p in self.environment.players.itervalues(): 
+		# draw all players. TODO : should i restrict to viewport for speed?
+			p.draw(self,self.screenCoord(p.position))
+
 
     def setCenter(self, position):
         self.center = position

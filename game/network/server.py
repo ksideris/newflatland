@@ -6,33 +6,42 @@ import logging
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application
-import cPickle as pickle,time
+import pickle,time,sys #TODO change to cPickle for speed
 
 
 
 class GameStateTransmitter(RequestHandler):
+    GESTURE_HISTORY = 10
+    def get(self):
+        gest= self.request.arguments
+        print gest
+        env = None
+        try:
+            env = pickle.load(  open( "ServerIn.p", "rb" ) )  
+        except Exception:
+            pass
 
-	def get(self):
-		gest= self.request.arguments
-		env = pickle.load(  open( "env.p", "rb" ) )  
+        if(env<>None):
+            self.write(env)
+        else:
+            self.write('move along sir,nothing to see here')
+        self.flush()
 		
-		if(env<>None):
-			self.write(env)
-		else:
-			self.write('move along sir,nothing to see here')
-		self.flush()
+        self.finish()
+        try:
+            gestures=[]
+            gestures = pickle.load(  open( "ServerOut.p", "rb" ) ) 
+            gestures.append((gest['action'],time.time()))
+            #if(len(gestures)>self.GESTURE_HISTORY):
+            #    gestures=gestures[1:]
+            pickle.dump(gestures, open( "ServerOut.p", "wb" ) )
+        except Exception:
+            print sys.exc_info()[0]
+        
 		
-		self.finish()
-		'''try:
-			gestures = pickle.load(  open( "gest.p", "rb" ) ) 
-			gestures.append((self.request.arguments['action'],time.time()))
-			if(len(gestures)>10):
-				gestures=gestures[1:]
-			pickle.dump(gestures, open( "gest.p", "wb" ) )
-		except Exception:
-			print Exception
-		'''
-		#print gestures
+
+	
+
 class Server():
 
 	def start(self,server_address,server_port):

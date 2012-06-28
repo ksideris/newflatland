@@ -14,11 +14,43 @@ import pygame
 from vector import Vector2D
 from game.player import Player,Building,ResourcePool
 from twisted.internet.task import LoopingCall
-import httplib
+import httplib,asyncore,socket
 
 
 import time
 import pickle,sys #TODO change to cPickle for speed
+
+
+class HTTPClient(asyncore.dispatcher):
+
+    def __init__(self, host,port, path):
+        asyncore.dispatcher.__init__(self)
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connect( (host, port) )
+        self.buffer = 'GET %s HTTP/1.0\r\n\r\n' % path
+
+    def handle_connect(self):
+        pass
+
+    def handle_close(self):
+        self.close()
+
+    def handle_read(self):
+		global count
+		s= self.recv(500)
+		if(len(s)>0):
+		    print len(s),s	
+		    #print pickle.loads(s)
+		    #pickle.dump(s, open( "ClientData.p", "wb" ) )
+
+    def writable(self):
+        return (len(self.buffer) > 0)
+
+    def handle_write(self):
+        sent = self.send(self.buffer)
+        self.buffer = self.buffer[sent:]
+
+
 
 
 class Environment(): #in an MVC system , this would be a controller
@@ -39,24 +71,50 @@ class Environment(): #in an MVC system , this would be a controller
 		self.height = 48.0
 		self.view =None
 		self.ResourcePool = ResourcePool()
-		
 
     def MakeRequest(self):
         player_id=1
         try:
             actions = ['attack','idle','scan','build']
-            start=time.time()            
+            start=time.time()   
+            #client = HTTPClient('192.168.1.102',7022, '/?id=2&action=attack')
+            #asyncore.loop()         
+            
             conn = httplib.HTTPConnection(self.server_address+':'+self.server_port)
             conn.request("GET", '/?id=1&action=attack')
             
             s = conn.getresponse()
-            print time.time()-start
-            #pickle.dump(s, open( "ClientData.p", "wb" ) )
+            data =s.read(700)
+            pickle.dump(data, open( "ClientData.p", "wb" ) )
+            #print time.time()-start
+            #
+        except Exception:
+			print 'a', sys.exc_info()[0]
+
+    def updateState(self):
+        s=None
+        try:
+            s = pickle.load(open( "ClientData.p", "rb" ) )
+            #print s
+            #pickle.dump([], open( "ClientData.p", "wb" ) )
         except Exception:
 			print sys.exc_info()[0]
+        
+        if(s<>None):
+            try:
+                players =  pickle.loads(s)
+                self.players.clear()
+                for p in players.itervalues():
+                    #print p
+                    self.players[id(p)] = p
+            except Exception:
+			    print 'b',sys.exc_info()[0]
+        else:
+            print 'None?'
+            
     def Update(self):
 		
-		
+		self.updateState()
 		self.view.paint()
 	
 
@@ -68,7 +126,7 @@ class Environment(): #in an MVC system , this would be a controller
 		self._renderCall = LoopingCall(self.Update) #TODO can i avoid it?
 		self._requestCall = LoopingCall(self.MakeRequest) #TODO can i avoid it?
 		self._renderCall.start(0.03)	
-		self._requestCall.start(0.03)	
+		self._requestCall.start(0.01)	
 
 
 	#FUNCTIONS FOR NETWORKING
