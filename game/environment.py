@@ -123,7 +123,7 @@ class Environment(): #in an MVC system , this would be a controller
 	def cSerialize(self):
 		
 		s=pickle.dumps(self.players)#+'$'+pickle.dumps(self.buildings)
-		print len(s),s		
+		#print len(s),s		
 		return s
 
 	
