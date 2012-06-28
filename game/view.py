@@ -55,16 +55,18 @@ class Window(object):
                 self.screen.blit(bg._image, pygame.Rect(x, j, bgWidth, bgHeight))
                 j += bgHeight
             x += bgWidth
+
         self.drawEnvironment()
-       	
+       	self.drawHUD()
+
         pygame.display.flip()
 
 
     def drawEnvironment(self):
 		'''Draw the state of the environment. This is called by view after drawing the background. 
 		   This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
-		
-		self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
+		if(self.environment.ResourcePool<>None):
+		    self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
 
 		for b in self.environment.buildings.itervalues():
 		# draw all buildings. TODO : should i restrict to viewport for speed?
@@ -74,7 +76,59 @@ class Window(object):
 		# draw all players. TODO : should i restrict to viewport for speed?
 			p.draw(self,self.screenCoord(p.position))
 
+    def drawHUD(self): 
+        ''' Draw the HUD . It includes scores, time, and other info'''
 
+        #Draw time left
+        minRemaining = self.environment.TimeLeft / 60
+        secRemaining = self.environment.TimeLeft % 60
+        secStr = str(secRemaining)
+        if secRemaining <= 9: secStr = "0" + secStr
+
+        minStr = str(minRemaining)
+        if minRemaining <= 9: minStr = "0" + minStr
+        
+        if(self.environment.IsServer):
+            font = pygame.font.Font("data/Deutsch.ttf", 70)
+            text = font.render(minStr + ":" + secStr, True, (255, 255, 255))
+            
+            textrect = text.get_rect(left = 15, top = 40)
+        else:
+            
+
+            font = pygame.font.Font("data/Deutsch.ttf", 35)
+            text = font.render(minStr + ":" + secStr, True, (255, 255, 255))
+            text = pygame.transform.rotate(text, 270)
+      
+            textrect = text.get_rect(left = 15, bottom = 410)
+
+        self.screen.blit(text,textrect)
+
+        #Draw the scores
+		
+        fontColors = [(255, 0, 0), (0,255,255)]
+        if(self.environment.IsServer): 
+            
+            font = pygame.font.Font("data/Deutsch.ttf", 35)
+            text = font.render(str(self.environment.scores[0]), True, fontColors[0])
+            textrect = text.get_rect(right =735, top = 40)
+            self.screen.blit(text,textrect)
+
+            text = font.render(str(self.environment.scores[1]), True, fontColors[1])
+		
+            textrect = text.get_rect(right =735, top = 80)
+        else:
+            font = pygame.font.Font("data/Deutsch.ttf", 35)
+            text = font.render(str(self.environment.scores[0]), True, fontColors[0])
+            text = pygame.transform.rotate(text, 270)
+            textrect = text.get_rect(right =735, bottom = 410)
+            self.screen.blit(text,textrect)
+            text = font.render(str(self.environment.scores[1]), True, fontColors[1])
+            text = pygame.transform.rotate(text, 270)
+            textrect = text.get_rect(right = 775, bottom = 410)
+        
+        self.screen.blit(text,textrect)
+        
     def setCenter(self, position):
         self.center = position
 

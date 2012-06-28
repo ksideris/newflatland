@@ -32,9 +32,9 @@ class Building():
 	def __init__(self):
 		self.sides = 3
 		self.resources = 0
-		self.team=0
+		self.team=1
 		self.size = 1
-		self.position = Vector2D(0, 0)
+		self.position = Vector2D(random.randint(-10, 10), random.randint(-10, 10))
 
 	def draw(self,view, position):
 		image = view.images.images["Building", self.sides,self.team]

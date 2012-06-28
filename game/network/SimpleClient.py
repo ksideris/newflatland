@@ -1,6 +1,6 @@
 
 
-import httplib,pickle,time
+import httplib,pickle,time,sys
 
 SHOW_STATISTICS =True
 class SimpleClient():

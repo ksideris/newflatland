@@ -17,7 +17,7 @@ class HTTPClient(asyncore.dispatcher):
 
     def handle_read(self):
 		
-		s= self.recv(800)
+		s= self.recv(20000)
 		if(len(s)>0):
 		    bodyIndex =  string.index(s, "\r\n\r\n") +4
 		    pickle.dump(s[bodyIndex:], open( "ClientData.p", "wb" ) )

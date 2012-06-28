@@ -18,21 +18,25 @@ from twisted.internet.task import LoopingCall
 import time
 import pickle,sys #TODO change to cPickle for speed
 
-GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
 
 class Environment(): #in an MVC system , this would be a controller
 	''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
 	NEXT_PLAYER_ID=1
+    
+	GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
     
 	def __init__(self):
 		'''State: Players,Buildings, Time, Resourse Pool'''
 		self.players 	= {}
 		self.buildings 	= {}
 		self.TimeLeft = 0 
+		self.TrueTimeLeft = 0         
+		self.scores =[0,0]
 		
 		self.width = 80.0
 		self.height = 48.0
 		self.view =None
+		self.IsServer = True
 		self.ResourcePool = ResourcePool()
 		
 
@@ -66,17 +70,22 @@ class Environment(): #in an MVC system , this would be a controller
 		
 		self.ResourcePool.draw(view,view.screenCoord(Vector2D(0,0)))
 
-		for b in self.buildings.itervalues():# draw all buildings. TODO : should i restrict to viewport for speed?
+		for b in self.buildings.itervalues():
 			b.draw(view,view.screenCoord(b.position))
 
-		for p in self.players.itervalues(): # draw all players. TODO : should i restrict to viewport for speed?
+		for p in self.players.itervalues(): 
 			p.draw(view,view.screenCoord(p.position))
 		
 	def Update(self):
-		for p in self.players.itervalues():
-				p.position+=Vector2D(.2,0)
-                if(p.position[0]>20 or p.position[1]>20 ):
-                    p.position+=Vector2D(-40,0)
+		self.TrueTimeLeft-=0.03
+		self.TimeLeft = int(self.TrueTimeLeft)
+		self.scores =self.calculateScores()
+		for playerId in self.players:
+			p = self.players[playerId]
+			p.position+=Vector2D(.2,0)
+			print p.position
+			if(p.position.x>20):
+			    p.position=Vector2D(-20,p.position.y)
 		self.writeStateToServer()
 		self.readStateFromServer()
 		self.processNewState()
@@ -88,11 +97,32 @@ class Environment(): #in an MVC system , this would be a controller
 	
 	def start(self):
 		'''controls the environment by initiating the looping calls'''
-
+		self.TrueTimeLeft=Environment.GAME_DURATION
 		pickle.dump( [], open( "ServerOut.p", "wb" ) )
 		self.view.start('Server')
 		self._renderCall = LoopingCall(self.Update) #TODO can i avoid it?
 		self._renderCall.start(0.03)	
+
+
+	def calculateScores(self):
+        
+		score=[0,0]
+		for team in range(1,3):
+		    for playerId in self.players:
+
+			    player = self.players[playerId]
+
+			    if player.team == team:
+			        score[team-1] += player.sides
+			        score[team-1] += player.resources
+
+		    for buildingId in self.buildings:
+			    building = self.buildings[buildingId]
+			    if building.team == team:
+			        score[team-1]  += building.sides
+			        score[team-1]  += building.resources
+		    score[team-1] *= 1000
+		return score ;
 
 
 	#FUNCTIONS FOR NETWORKING
@@ -105,24 +135,17 @@ class Environment(): #in an MVC system , this would be a controller
 				
 		try:
 			self.actions = pickle.load(  open( "ServerOut.p", "rb" ) ) 
-			#if(len(self.actions)>0):		
-			#	print 'read',self.actions
+
 			pickle.dump( [], open( "ServerOut.p", "wb" ) )
 		except Exception:
 			print 'env1',sys.exc_info()[0]
 	
-	def Serialize(self):
-		s=''
-		for p in self.players.itervalues():
-			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
-		for b in self.buildings.itervalues():
-			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
-        
-		return s
+
 
 	def cSerialize(self):
 		
-		s=pickle.dumps(self.players)#+'$'+pickle.dumps(self.buildings)
+		s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
+                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)
 		#print len(s),s		
 		return s
 
@@ -135,6 +158,14 @@ class Environment(): #in an MVC system , this would be a controller
 		for b in self.buildings.itervalues():
 			s+= pickle.dumps(b)+'$'
 		
+		return s
+	def Serialize(self):
+		s=''
+		for p in self.players.itervalues():
+			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
+		for b in self.buildings.itervalues():
+			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
+        
 		return s
 	
  

@@ -1,3 +1,4 @@
+#TODO UPDATE documentation
 '''
 Environment contains all the higher level state of the game.
 Naturally, the server keeps one, but each client/player has
@@ -26,42 +27,28 @@ import pickle,sys #TODO change to cPickle for speed
 class Environment(): #in an MVC system , this would be a controller
     ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
 
-
+    TOTAL_TIME = 15*60
 
     def __init__(self):
 		'''State: Players,Buildings, Time, Resourse Pool'''
 		self.players 	= {}
 		self.buildings 	= {}
 		self.TimeLeft = 0 
-		#self.conn = 
 		self.width = 80.0
 		self.height = 48.0
 		self.view =None
-		self.ResourcePool = ResourcePool()
+		self.team =1
+		self.scores =[0,0]
+		self.IsServer = False
+		self.ResourcePool = None
 		self.client = AsyncClient()
     
 
     def updateState(self):
-        s=None
-        try:
-            s = pickle.load(open( "ClientData.p", "rb" ) )
-        except Exception:
-			print sys.exc_info()[0]
-        
-        if(s<>None):
-            try:
-                players =  pickle.loads(s)
-                self.players.clear()
-                for p in players.itervalues():
-                    #print p
-                    self.players[id(p)] = p
-            except Exception:
-			    print 'b',sys.exc_info()[0]
-        else:
-            print 'None?'
+        pass
             
     def Update(self):
-		
+		self.deSerialize()
 		self.updateState()
 		self.view.paint()
 	
@@ -70,7 +57,7 @@ class Environment(): #in an MVC system , this would be a controller
 		'''controls the environment by initiating the looping calls'''
 
 		
-		self.view.start('c')
+		self.view.start('client')
 		self.client.start('192.168.1.102','7022')
 		self._renderCall = LoopingCall(self.Update) 
 		self._requestCall = LoopingCall(self.client.MakeRequest) 
@@ -79,15 +66,36 @@ class Environment(): #in an MVC system , this would be a controller
 
 
 	#FUNCTIONS FOR NETWORKING
-
 	
     def deSerialize(self):
-		s=''
-		for p in self.players.itervalues():
-			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
-		for b in self.buildings.itervalues():
-			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
-		return s
+        s=None
+        try:
+            s = pickle.load(open( "ClientData.p", "rb" ) )
+        except Exception:
+			print 'Error Loading Client Data',sys.exc_info()[0]
+        
+        if(s<>None):
+            t = s.split('$')
+            #print len(t)
+            try:
+                players =  pickle.loads(t[0]) #update players
+                self.players.clear()
+                for p in players.itervalues():                    
+                    self.players[id(p)] = p
+
+                buildings =  pickle.loads(t[1]) #update buildings
+                self.buildings.clear()
+                for b in buildings.itervalues():                    
+                    self.buildings[id(b)] = b
+                self.ResourcePool = pickle.loads(t[2])
+                self.scores =pickle.loads(t[3])
+                self.TimeLeft =int(t[4])
+
+                
+            except Exception:
+			    print 'Something went wrong while deserializing:',sys.exc_info()[0]
+        else:
+            print sys.exc_info()[0]
 
 
 	
