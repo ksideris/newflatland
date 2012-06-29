@@ -14,7 +14,7 @@ class GameStateTransmitter(RequestHandler):
     GESTURE_HISTORY = 10
     def get(self):
         gest= self.request.arguments
-        print gest
+        #print gest
         env = None
         try:
             env = pickle.load(  open( "ServerIn.p", "rb" ) )  
@@ -31,7 +31,7 @@ class GameStateTransmitter(RequestHandler):
         try:
             gestures=[]
             gestures = pickle.load(  open( "ServerOut.p", "rb" ) ) 
-            gestures.append((gest['action'],time.time()))
+            gestures.append((gest['id'],gest['action'],time.time()))
             #if(len(gestures)>self.GESTURE_HISTORY):
             #    gestures=gestures[1:]
             pickle.dump(gestures, open( "ServerOut.p", "wb" ) )

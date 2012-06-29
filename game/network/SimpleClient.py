@@ -2,10 +2,10 @@
 
 import httplib,pickle,time,sys
 
-SHOW_STATISTICS =True
+SHOW_STATISTICS =False
 class SimpleClient():
 
-    def MakeRequest(self):
+    def MakeRequest(self,pid,action):
         player_id=1
         try:
             actions = ['attack','idle','scan','build']
@@ -13,7 +13,7 @@ class SimpleClient():
      
             
             conn = httplib.HTTPConnection(self.server_address+':'+self.server_port)
-            conn.request("GET", '/?id=1&action=attack')
+            conn.request("GET",  '/?id='+str(pid)+'&action='+str(action))
             
             s = conn.getresponse()
             data =s.read()

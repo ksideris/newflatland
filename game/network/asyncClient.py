@@ -1,6 +1,6 @@
 import asyncore, socket,pickle,time,string
 
-SHOW_STATISTICS =True
+SHOW_STATISTICS =False
 class HTTPClient(asyncore.dispatcher):
 
     def __init__(self, host,port, path):
@@ -22,7 +22,6 @@ class HTTPClient(asyncore.dispatcher):
 		    bodyIndex =  string.index(s, "\r\n\r\n") +4
 		    pickle.dump(s[bodyIndex:], open( "ClientData.p", "wb" ) )
 		    
-		    #print s[:86]
     def writable(self):
         return (len(self.buffer) > 0)
 
@@ -33,11 +32,11 @@ class HTTPClient(asyncore.dispatcher):
 
 class AsyncClient():
 
-    def MakeRequest(self):
+    def MakeRequest(self,pid,action):
 
         start =time.time()
     
-        client = HTTPClient(self.server_address,self.server_port, '/?id=2&action=attack')
+        client = HTTPClient(self.server_address,self.server_port, '/?id='+str(pid)+'&action='+str(action))
         asyncore.loop(0.03)
     
         

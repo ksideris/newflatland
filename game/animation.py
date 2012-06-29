@@ -1,7 +1,7 @@
 from twisted.internet.task import LoopingCall
 import pygame
 import itertools
-import math
+import math,time
 from vector import Vector2D
 
 rotateForTablet = True
@@ -34,9 +34,15 @@ class Image(object):
         self.offset = Vector2D(ox, oy)
         self.degrees = None
 
+    def addExistingImage(self,image):
+        self._image=image
+        self._setCenter()
     def load(self):
         self._image = _loadImage(self.path)
         self._setCenter()
+
+
+
 
     def _setCenter(self):
         self.center = Vector2D(self._image.get_rect().center)
@@ -85,7 +91,7 @@ class Animation(Image):
         self._image = self._images[0]
         self._setCenter()
 
-    def start(self, fps):
+    '''def start(self, fps):
         self._loopingCall = LoopingCall(self._nextImage, iter(self._images))
         return self._loopingCall.start(1.0 / fps)
 
@@ -100,7 +106,33 @@ class Animation(Image):
         try:
             self._image = iterator.next()
         except StopIteration:
-            self.stop()
+            self.stop()'''
+
+    def start(self,fps,end):
+        self.animationCounter = 0 
+        self.fps =fps
+        self.animationLastFired =time.time()
+        self.animationEnd = end
+
+    def getImage(self,i):
+        im = Image(None)
+        im.addExistingImage(self._images[i])
+        return im
+
+    def update(self):
+        if(self.animationCounter>= self.animationEnd):
+	        self.animationCounter = 0 
+	        self.animationLastFired = 0 
+	        return None
+        else:
+	        im = self.getImage(self.animationCounter)
+	        print self.animationCounter,self.animationLastFired,time.time()-  self.animationLastFired
+	        if(time.time()-  self.animationLastFired>self.fps ):
+	            self.animationCounter+=1
+	            print self.animationCounter,self.animationLastFired
+	            self.animationLastFired = time.time()
+	        return im
+
 
     def copy(self):
         animation = Animation(None)

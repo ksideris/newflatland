@@ -34,7 +34,6 @@ class Window(object):
         self.center = Vector2D((0,0))
 
 
-
     def paint(self): # Draw Background
         """
         Call C{paint} on all views which have been directly added to
@@ -69,12 +68,13 @@ class Window(object):
 		    self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
 
 		for b in self.environment.buildings.itervalues():
-		# draw all buildings. TODO : should i restrict to viewport for speed?
-			b.draw(self,self.screenCoord(b.position))
+			isVisible = (b.team == self.environment.team) or self.environment.team==None
+			b.draw(self,self.screenCoord(b.position),isVisible )
 
 		for p in self.environment.players.itervalues(): 
-		# draw all players. TODO : should i restrict to viewport for speed?
-			p.draw(self,self.screenCoord(p.position))
+			isVisible = (p.team == self.environment.team) or self.environment.team==None
+    
+			p.draw(self,self.screenCoord(p.position),isVisible )
 
     def drawHUD(self): 
         ''' Draw the HUD . It includes scores, time, and other info'''
@@ -128,6 +128,38 @@ class Window(object):
             textrect = text.get_rect(right = 775, bottom = 410)
         
         self.screen.blit(text,textrect)
+
+        #GAMEOVER
+        if self.environment.GameOver:
+            endGameMessage = ""
+            if self.environment.IsServer:
+                scoreDifference = self.environment.scores[0] - self.environment.scores[1]
+                if scoreDifference > 0:
+                    endGameMessage = "RED WINS!"
+                elif scoreDifference < 0:
+                    endGameMessage = "BLUE WINS!"
+                else:
+                    endGameMessage = "DRAW!"
+                font = pygame.font.Font("data/Deutsch.ttf", 140)
+                
+                text = font.render(endGameMessage, True, (255,255,255))
+                textrect = text.get_rect(centery =240, centerx = 400)
+
+            else:
+                scoreDifference = self.environment.scores[self.environment.team-1] > self.environment.scores[self.environment.otherTeam-1]
+                if scoreDifference > 0:
+                    endGameMessage = "YOU WIN!"
+                elif scoreDifference < 0:
+                    endGameMessage = "YOU LOSE!"
+                else:
+                  endGameMessage = "DRAW!"
+                font = pygame.font.Font("data/Deutsch.ttf", 70)
+
+                text = font.render(endGameMessage, True, (255,255,255))
+                text = pygame.transform.rotate(text, 270)
+                textrect = text.get_rect(centery =240, centerx = 400)
+            self.screen.blit(text,textrect)
+        
         
     def setCenter(self, position):
         self.center = position

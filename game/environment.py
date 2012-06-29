@@ -31,11 +31,13 @@ class Environment(): #in an MVC system , this would be a controller
 		self.buildings 	= {}
 		self.TimeLeft = 0 
 		self.TrueTimeLeft = 0         
-		self.scores =[0,0]
-		
+		self.scores =[0,0]     
+		self.GameOver =False
 		self.width = 80.0
 		self.height = 48.0
 		self.view =None
+		self.team =None
+		self.actions =None
 		self.IsServer = True
 		self.ResourcePool = ResourcePool()
 		
@@ -64,43 +66,49 @@ class Environment(): #in an MVC system , this would be a controller
 		return building
 
 	
-	def draw(self,view):
-		'''Draw the state of the environment. This is called by view after drawing the background. 
-		   This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
-		
-		self.ResourcePool.draw(view,view.screenCoord(Vector2D(0,0)))
 
-		for b in self.buildings.itervalues():
-			b.draw(view,view.screenCoord(b.position))
-
-		for p in self.players.itervalues(): 
-			p.draw(view,view.screenCoord(p.position))
-		
-	def Update(self):
+	def updateTime(self):
 		self.TrueTimeLeft-=0.03
-		self.TimeLeft = int(self.TrueTimeLeft)
-		self.scores =self.calculateScores()
+		self.TimeLeft = int(self.TrueTimeLeft)	
+		if(	self.TrueTimeLeft<=0):
+		    self.GameOver =True
+		    self.TrueTimeLeft =0
+
+
+	def testUpdatePlayers(self):
 		for playerId in self.players:
-			p = self.players[playerId]
-			p.position+=Vector2D(.2,0)
-			print p.position
-			if(p.position.x>20):
-			    p.position=Vector2D(-20,p.position.y)
+		    p = self.players[playerId]
+		    p.position+=Vector2D(.2,0)
+		    #print p.position
+		    if(p.position.x>20):
+		        p.position=Vector2D(-20,p.position.y)
+
+	def Update(self):
+		self.updateTime()
+		self.scores =self.calculateScores()
+		self.testUpdatePlayers()
 		self.writeStateToServer()
 		self.readStateFromServer()
 		self.processNewState()
 		self.view.paint()
 	
 	def processNewState(self):
+    
 		for action in self.actions:
-			print action
+		    for playerId in self.players:
+		        if(self.players[playerId].player_id)==int(action[0][0]):
+		            #print int(action[0][0]),' performed ',action[1][0]
+		            self.players[playerId].action= int(action[1][0])
+		            self.players[playerId].addAction(int(action[1][0]),self.view)
+		            break
+            
 	
 	def start(self):
 		'''controls the environment by initiating the looping calls'''
 		self.TrueTimeLeft=Environment.GAME_DURATION
 		pickle.dump( [], open( "ServerOut.p", "wb" ) )
 		self.view.start('Server')
-		self._renderCall = LoopingCall(self.Update) #TODO can i avoid it?
+		self._renderCall = LoopingCall(self.Update)
 		self._renderCall.start(0.03)	
 
 
@@ -143,7 +151,7 @@ class Environment(): #in an MVC system , this would be a controller
 
 
 	def cSerialize(self):
-		
+
 		s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
                 pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)
 		#print len(s),s		

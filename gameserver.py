@@ -17,7 +17,6 @@ tenv.createPlayer(2)
 tenv.createPlayer(1)
 tenv.createPlayer(2)
 
-tenv.createBuilding(2)
 tenv.createBuilding(1)
 tenv.createBuilding(2)
 tenv.createBuilding(1)
