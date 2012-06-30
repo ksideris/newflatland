@@ -15,165 +15,223 @@ from vector import Vector2D
 from game.player import Player,Building,ResourcePool
 from twisted.internet.task import LoopingCall
 
-import time
+import time,random
 import pickle,sys #TODO change to cPickle for speed
 
 
 class Environment(): #in an MVC system , this would be a controller
-	''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
-	NEXT_PLAYER_ID=1
+        ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
+        NEXT_PLAYER_ID=1
+        FPS=30
+        ATTACK_DISTANCE =3
+        BUILDING_DISTANCE =6
+        GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
     
-	GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
+        def __init__(self):
+                '''State: Players,Buildings, Time, Resourse Pool'''
+                self.players    = {}
+                self.buildings  = {}
+                self.TimeLeft = 0 
+                self.TrueTimeLeft = 0         
+                self.scores =[0,0]     
+                self.GameOver =False
+                self.width = 80.0
+                self.height = 48.0
+                self.view =None
+                self.team =None
+                self.actions =None
+                self.IsServer = True
+                self.ResourcePool = ResourcePool()
+                
+
+        #Helper Functions
+        def createPlayer(self, player_id,team):
+                '''add a player to the given team'''
+                player = Player()
+                player.team = team
+
+                playerId = id(player)
+                player.player_id = player_id
+                #player.player_id = Environment.NEXT_PLAYER_ID
+                #Environment.NEXT_PLAYER_ID = Environment.NEXT_PLAYER_ID + 1
+        
+                self.players[playerId] = player
+        
+                return player
+
+        def createBuilding(self, team,pos):
+                '''add a building to the given team'''
+                building = Building()
+                building.team = team
+                building.position =pos
+                bid = id(building)
+                self.buildings[bid] = building
+                
+        
+                return building
+
+        
+
+        def updateTime(self):
+                self.TrueTimeLeft-=1.0/Environment.FPS
+                self.TimeLeft = int(self.TrueTimeLeft)  
+                if(     self.TrueTimeLeft<=0):
+                    self.GameOver =True
+                    self.TrueTimeLeft =0
+
+
+        def testUpdatePlayers(self):
+                '''for playerId in self.players:
+                    p = self.players[playerId]
+                    p.position+=Vector2D(.1,0)
+                    #print p.position
+                    if(p.position.x>20):
+                        p.position=Vector2D(-20,p.position.y)
+                '''
+                pass
+
+        def Update(self):
+                self.updateTime()
+                self.scores =self.calculateScores()
+                self.testUpdatePlayers()
+                self.writeStateToServer()
+                self.readStateFromServer()
+                self.processNewState()
+                self.view.paint()
+        
+        def processNewState(self):
     
-	def __init__(self):
-		'''State: Players,Buildings, Time, Resourse Pool'''
-		self.players 	= {}
-		self.buildings 	= {}
-		self.TimeLeft = 0 
-		self.TrueTimeLeft = 0         
-		self.scores =[0,0]     
-		self.GameOver =False
-		self.width = 80.0
-		self.height = 48.0
-		self.view =None
-		self.team =None
-		self.actions =None
-		self.IsServer = True
-		self.ResourcePool = ResourcePool()
-		
+                for action in self.actions:
+                    found= False
+                    for playerId in self.players:
+                        if(self.players[playerId].player_id)==int(action[0][0]):
+                            self.players[playerId].action=int(action[2][0])
+                            pos = action[3][0].split(',')
+                            self.players[playerId].position = Vector2D(float(pos[0]),float(pos[1]))
+                            found =True
+                            break
 
-	#Helper Functions
-	def createPlayer(self, team):
-		'''add a player to the given team'''
-		player = Player()
-		player.team = team
+                    if(not found):
+                        self.createPlayer(int(action[0][0]),int(action[1][0]))
+                     
 
-		playerId = id(player)
-		player.player_id = Environment.NEXT_PLAYER_ID
-		Environment.NEXT_PLAYER_ID = Environment.NEXT_PLAYER_ID + 1
+                for playerId in self.players:
+                        
+                        player = self.players[playerId]
+                        
+
+                        if(player.action == Player.ATTACK): #ATTACK
+                                player.addAnimation(player.action)      
+                                for p in self.players.itervalues():
+                                        if (p.team != player.team) and (p.position - player.position) < Environment.ATTACK_DISTANCE:
+                                                p.hit()
+                                for b in self.buildings.itervalues():
+                                        if (b.team != player.team) and (b.position - player.position) < Environment.ATTACK_DISTANCE:
+                                                b.hit()
+
+                        elif(player.action == Player.BUILD): #building
+                                ACTION = "BUILD"
+                                if(self.ResourcePool.position-player.position< self.ResourcePool.size):
+                                        ACTION ="MINE"
+                                else:
+                                        for b in self.buildings.itervalues():
+                                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position) <b.size):
+                                                        ACTION ="MINE"
+                                                        break      
+                                if( ACTION =="MINE"):
+                                        player.addAnimation(player.action) 
+                                        player.mine()
+                                         
+                                else:
+                                        if(player.resources>0):
+                                                BUILDING =None
+                                                for b in self.buildings.itervalues():
+                                                        if   (b.position - player.position) < Environment.BUILDING_DISTANCE:
+                                                                BUILDING =b
+                                                                break
+                                                if BUILDING ==None :#should drop resource
+                                                       self.createBuilding(  player.team, player.position)                       
+                                                       player.resources-=1 
+
+                                                elif BUILDING.team ==player.team:
+                                                       player.addAnimation(player.action) 
+                                                       BUILDING.build(player) 
+                                              
+                        for b in self.buildings.itervalues():
+                             if   (b.position - player.position) < Environment.BUILDING_DISTANCE and b.isTrap() and b.team<>player.team:         
+                                        b.explode(player)   
         
-		self.players[playerId] = player
+        def start(self):
+                '''controls the environment by initiating the looping calls'''
+                self.TrueTimeLeft=Environment.GAME_DURATION
+                pickle.dump( [], open( "ServerOut.p", "wb" ) )
+                self.view.start('Server')
+                self._renderCall = LoopingCall(self.Update)
+                self._renderCall.start(1.0/Environment.FPS)    
+
+
+        def calculateScores(self):
         
-		return player
+                score=[0,0]
+                for team in range(1,3):
+                    for playerId in self.players:
 
-	def createBuilding(self, team):
-		'''add a building to the given team'''
-		building = Building()
-		building.team = team
-		bid = id(building)
-		self.buildings[bid] = building
+                            player = self.players[playerId]
+
+                            if player.team == team:
+                                score[team-1] += player.sides
+                                score[team-1] += player.resources
+
+                    for buildingId in self.buildings:
+                            building = self.buildings[buildingId]
+                            if building.team == team:
+                                score[team-1]  += building.sides
+                                score[team-1]  += building.resources
+                    score[team-1] *= 1000
+                return score ;
+
+
+        #FUNCTIONS FOR NETWORKING
+        def writeStateToServer(self):
+                                
+                pickle.dump( self.cSerialize(), open( "ServerIn.p", "wb" ) )
+                
+                
+        def readStateFromServer(self):
+                #print self.actions                 
+                try:
+                        self.actions     = pickle.load(  open( "ServerOut.p", "rb" ) ) 
+                        pickle.dump( [], open( "ServerOut.p", "wb" ) )
+
+                except Exception:
+                        print 'env1',sys.exc_info()[0]
         
-		return building
+                #print self.actions   
 
-	
+        def cSerialize(self):
 
-	def updateTime(self):
-		self.TrueTimeLeft-=0.03
-		self.TimeLeft = int(self.TrueTimeLeft)	
-		if(	self.TrueTimeLeft<=0):
-		    self.GameOver =True
-		    self.TrueTimeLeft =0
-
-
-	def testUpdatePlayers(self):
-		for playerId in self.players:
-		    p = self.players[playerId]
-		    p.position+=Vector2D(.2,0)
-		    #print p.position
-		    if(p.position.x>20):
-		        p.position=Vector2D(-20,p.position.y)
-
-	def Update(self):
-		self.updateTime()
-		self.scores =self.calculateScores()
-		self.testUpdatePlayers()
-		self.writeStateToServer()
-		self.readStateFromServer()
-		self.processNewState()
-		self.view.paint()
-	
-	def processNewState(self):
-    
-		for action in self.actions:
-		    for playerId in self.players:
-		        if(self.players[playerId].player_id)==int(action[0][0]):
-		            #print int(action[0][0]),' performed ',action[1][0]
-		            self.players[playerId].action= int(action[1][0])
-		            self.players[playerId].addAction(int(action[1][0]),self.view)
-		            break
-            
-	
-	def start(self):
-		'''controls the environment by initiating the looping calls'''
-		self.TrueTimeLeft=Environment.GAME_DURATION
-		pickle.dump( [], open( "ServerOut.p", "wb" ) )
-		self.view.start('Server')
-		self._renderCall = LoopingCall(self.Update)
-		self._renderCall.start(0.03)	
-
-
-	def calculateScores(self):
-        
-		score=[0,0]
-		for team in range(1,3):
-		    for playerId in self.players:
-
-			    player = self.players[playerId]
-
-			    if player.team == team:
-			        score[team-1] += player.sides
-			        score[team-1] += player.resources
-
-		    for buildingId in self.buildings:
-			    building = self.buildings[buildingId]
-			    if building.team == team:
-			        score[team-1]  += building.sides
-			        score[team-1]  += building.resources
-		    score[team-1] *= 1000
-		return score ;
-
-
-	#FUNCTIONS FOR NETWORKING
-	def writeStateToServer(self):
-				
-		pickle.dump( self.cSerialize(), open( "ServerIn.p", "wb" ) )
-		
-		
-	def readStateFromServer(self):
-				
-		try:
-			self.actions = pickle.load(  open( "ServerOut.p", "rb" ) ) 
-
-			pickle.dump( [], open( "ServerOut.p", "wb" ) )
-		except Exception:
-			print 'env1',sys.exc_info()[0]
-	
-
-
-	def cSerialize(self):
-
-		s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
+                s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
                 pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)
-		#print len(s),s		
-		return s
+                #print len(s),s         
+                return s
 
-	
-
-	def _serialize(self):
-		s =''
-		for p in self.players.itervalues():
-			s+= pickle.dumps(p)+'$'
-		for b in self.buildings.itervalues():
-			s+= pickle.dumps(b)+'$'
-		
-		return s
-	def Serialize(self):
-		s=''
-		for p in self.players.itervalues():
-			s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
-		for b in self.buildings.itervalues():
-			s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
         
-		return s
-	
+
+        def _serialize(self):
+                s =''
+                for p in self.players.itervalues():
+                        s+= pickle.dumps(p)+'$'
+                for b in self.buildings.itervalues():
+                        s+= pickle.dumps(b)+'$'
+                
+                return s
+        def Serialize(self):
+                s=''
+                for p in self.players.itervalues():
+                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
+                for b in self.buildings.itervalues():
+                        s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
+        
+                return s
+        
  

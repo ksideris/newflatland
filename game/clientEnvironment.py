@@ -26,10 +26,12 @@ import pickle,sys #TODO change to cPickle for speed
 
 class Environment(): #in an MVC system , this would be a controller
     ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
-
+    ATTACK_RADIUS = 3
+    SCAN_RADIUS = 3
+    FPS=30
     
 
-    def __init__(self):
+    def __init__(self,player_id,team):
 		'''State: Players,Buildings, Time, Resourse Pool'''
 		self.players 	= {}
 		self.buildings 	= {}
@@ -38,19 +40,21 @@ class Environment(): #in an MVC system , this would be a controller
 		self.height = 48.0
 		self.view =None
 		self.GameOver =False
-		self.playerID =1
+		self.playerID =player_id
 		self.action = 0
 		self.lastAction = 0# time at which we activated the last action. Used to regulate action activations
-		self.team =1
+		self.team =team
 		self.otherTeam = 2 if self.team==1 else  1 
 		self.scores =[0,0]
 		self.IsServer = False
 		self.ResourcePool = None
-		self.client = AsyncClient()
+		self.client = AsyncClient()     
+
+                self.Position = (0,0)
     
 
     def readGestures(self):
-        self.action = 1 #attack
+        pass#self.action = 1 #attack
 
     def updateTime(self):
 		
@@ -64,8 +68,10 @@ class Environment(): #in an MVC system , this would be a controller
 		self.view.paint()
 	
     def makeRequest(self):
-        self.client.MakeRequest(self.playerID,random.randint(1,3))
-
+        #print self.action
+        self.client.MakeRequest(self.playerID,self.team,self.action,self.Position)
+        
+        self.action = 0
 
     def start(self):
 		'''controls the environment by initiating the looping calls'''
@@ -75,7 +81,7 @@ class Environment(): #in an MVC system , this would be a controller
 		self.client.start('192.168.1.102','7022')
 		self._renderCall = LoopingCall(self.Update) 
 		self._requestCall = LoopingCall(self.makeRequest) 
-		self._renderCall.start(0.03)	
+		self._renderCall.start(1.0/Environment.FPS)	
 		self._requestCall.start(0.03)	
 
 
@@ -96,6 +102,9 @@ class Environment(): #in an MVC system , this would be a controller
                 self.players.clear()
                 for p in players.itervalues():                    
                     self.players[id(p)] = p
+                    if p.player_id == self.playerID:
+                        p.position = Vector2D(self.Position)
+                        p.action = self.action
 
                 buildings =  pickle.loads(t[1]) #update buildings
                 self.buildings.clear()

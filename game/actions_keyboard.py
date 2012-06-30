@@ -45,8 +45,8 @@ class PlayerController(object):
 
     _actions = set([ATTACK, SCAN, BUILD, UPGRADE, SWITCH_TEAMS])
 
-    def __init__(self, perspective, view):
-        self.perspective = perspective
+    def __init__(self,  view):
+        #self.perspective = perspective
         self.position = Vector2D(0, 0)
         self.speed = 10
         self.view = view
@@ -97,8 +97,8 @@ class PlayerController(object):
         #    self.position += (dt * self.speed) * direction.norm()
         if directionX != 0 or directionY != 0:
             self.position += (dt * self.speed) * direction.norm()
-
-        self.perspective.callRemote('updatePosition', self.position)
+        self.view.environment.Position = self.position
+        pass #self.perspective.callRemote('updatePosition', self.position)
         self.view.setCenter(self.position)
 
 
@@ -108,34 +108,34 @@ class PlayerController(object):
         self._currentAction = action
 
         if self._currentAction == SWITCH_TEAMS:
-            self.perspective.callRemote("switchTeams")
+            pass #self.perspective.callRemote("switchTeams")
 
         if self._currentAction == ATTACK:
-            self.perspective.callRemote('startAttacking')
+            self.view.environment.action = 1
         elif self._currentAction == BUILD:
-            self.perspective.callRemote('startBuilding')
+            self.view.environment.action = 3
         elif self._currentAction == SCAN:
-            self.perspective.callRemote('startScanning')
+            pass #self.perspective.callRemote('startScanning')
             #self.view.addAction("sweep")
         elif self._currentAction == UPGRADE:
             #make upgrade key toggle the upgrade action
             if lastAction != UPGRADE:
-                self.perspective.callRemote('startUpgrading')
+                pass #self.perspective.callRemote('startUpgrading')
             else:# lastAction == UPGRADE:
-                self.perspective.callRemote('finishUpgrading')
+                pass #self.perspective.callRemote('finishUpgrading')
         else:
             self._currentAction = None
 
 
     def _finishedAction(self):
         if self._currentAction == ATTACK:
-            self.perspective.callRemote('finishAttacking')
+            pass
         elif self._currentAction == BUILD:
-            self.perspective.callRemote('finishBuilding')
+            pass #self.perspective.callRemote('finishBuilding')
         elif self._currentAction == SCAN:
-            self.perspective.callRemote('finishScanning')
+            pass #self.perspective.callRemote('finishScanning')
         elif self._currentAction == UPGRADE:
-            self.perspective.callRemote('finishUpgrading')
+            pass #self.perspective.callRemote('finishUpgrading')
         self._currentAction = None
 
         return

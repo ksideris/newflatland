@@ -32,12 +32,17 @@ class HTTPClient(asyncore.dispatcher):
 
 class AsyncClient():
 
-    def MakeRequest(self,pid,action):
+    def MakeRequest(self,pid,team,action,position):
 
         start =time.time()
-    
-        client = HTTPClient(self.server_address,self.server_port, '/?id='+str(pid)+'&action='+str(action))
-        asyncore.loop(0.03)
+        message = '/?id='+str(pid)+'&team='+str(team)+'&action='+str(action)
+        #print message,action
+        if position<>None: 
+                message+='&pos='+str(position[0])+','+str(position[1])
+        message+='&time='+str(time.time())
+        #print message
+        client = HTTPClient(self.server_address,self.server_port, message)
+        asyncore.loop()
     
         
         if(SHOW_STATISTICS):

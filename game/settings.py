@@ -18,9 +18,7 @@ class Images:
         self.images["Attack"] = Animation(dir.child("players").child("attack").child("attack%04d.png"))
         self.images["LevelUp"] = Animation(dir.child("effects").child("player_lvlup").child("player_lvlup%04d.png"))
 
-        #TODO try to give these more descriptive names        
-        #self.images["Generic_1"] = Animation(dir.child("effects").child("multi_use_action").child("multi_use_action%04d.png"))
-        #self.images["Generic_2"] = Animation(dir.child("effects").child("multi_use_action2").child("multi_use_action2_%04d.png"))
+
         self.images["player upgraded"] = Animation(dir.child("effects").child("player_lvlup").child("player_lvlup%04d.png"))
         
         self.images["mining"] =Animation(dir.child("effects").child("resource_gather").child("resource_gather%04d.png"))
@@ -90,6 +88,7 @@ class Images:
 
         self.images["TrapExplosion"] = Animation(dir.child("effects").child("explosion").child("explosion%04d.png"))
         self.images["building upgraded"] = Animation(dir.child("effects").child("build_effect").child("build_effect%04d.png"))
+        self.images["BuildingAttacked"] = Animation(dir.child("effects").child("building_attacked").child("building_attacked%04d.png"))
 
     def _initArmorImages(self, dir):
         armorDir = dir.child("players").child("armor")

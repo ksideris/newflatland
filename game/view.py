@@ -60,6 +60,24 @@ class Window(object):
 
         pygame.display.flip()
 
+    def isVisible(self, entity):
+        if not self.environment.team:
+            return True
+        # See objects on your team
+        if self.environment.team == entity.team:
+            return True
+        # Object in range of my sentries
+        for b in self.environment.buildings.itervalues():
+            if b.isSentry() and (b.team == self.environment.team) and (entity.position - b.position) < 13.75:
+                return True
+        # object in range of a scanning player
+        '''for p in self.environment.players.itervalues():
+            if (self.environment.team == p.team):
+                if (entity.position - p.position) < p.getScanRadius() * 5:
+                    return True
+        '''
+        return False
+
 
     def drawEnvironment(self):
 		'''Draw the state of the environment. This is called by view after drawing the background. 
@@ -68,13 +86,12 @@ class Window(object):
 		    self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
 
 		for b in self.environment.buildings.itervalues():
-			isVisible = (b.team == self.environment.team) or self.environment.team==None
-			b.draw(self,self.screenCoord(b.position),isVisible )
+			b.draw(self,self.screenCoord(b.position),self.isVisible(b) )
 
 		for p in self.environment.players.itervalues(): 
 			isVisible = (p.team == self.environment.team) or self.environment.team==None
     
-			p.draw(self,self.screenCoord(p.position),isVisible )
+			p.draw(self,self.screenCoord(p.position),self.isVisible(p)  )
 
     def drawHUD(self): 
         ''' Draw the HUD . It includes scores, time, and other info'''

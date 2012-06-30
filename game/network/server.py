@@ -28,16 +28,22 @@ class GameStateTransmitter(RequestHandler):
         self.flush()
 		
         self.finish()
+        gestures=[]
         try:
-            gestures=[]
-            gestures = pickle.load(  open( "ServerOut.p", "rb" ) ) 
-            gestures.append((gest['id'],gest['action'],time.time()))
+            gestures =  pickle.load(  open( "ServerOut.p", "rb" ) ) 
+            #gestures =[]    
+            #print  gest   
+            
+            for g in gestures:
+                if(gest['id']==g[0] and float(g[4][0])<float(gest['time'][0])):
+                        gestures.remove(g)
+            gestures.append((gest['id'],gest['team'],gest['action'],gest['pos'],gest['time']))
             #if(len(gestures)>self.GESTURE_HISTORY):
             #    gestures=gestures[1:]
-            pickle.dump(gestures, open( "ServerOut.p", "wb" ) )
+            
         except Exception:
             print sys.exc_info()[0]
-        
+        pickle.dump(gestures, open( "ServerOut.p", "wb" ) )
 		
 
 	

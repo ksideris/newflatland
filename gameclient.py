@@ -16,14 +16,19 @@ if platform.machine() == "armv7l":
 else:
     displayFlags = pygame.DOUBLEBUF
     pygame.display.set_mode((800, 480), displayFlags)
+    from game.actions_keyboard import PlayerController
+    
+if (len(sys.argv) == 3):
+        tenv = environment.Environment(int(sys.argv[1]),int(sys.argv[2]))
+        a=view.Window(tenv)
+        
+        controller = PlayerController(a)
+        controller.go()
+        tenv.start()
+        
+        reactor.run()
 
-tenv = environment.Environment()
-
-a=view.Window(tenv)
-
-
-tenv.start()
-
-reactor.run()
+else:
+        print 'Usage: gameclient.py player_id team'
 
 
