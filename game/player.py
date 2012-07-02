@@ -87,7 +87,7 @@ class Player():
                 if self.resources:
                     self.resources -= 1
                 else:
-                    self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
+                    self.animations.addAnimation( AnimatedActions.PLAYER_DOWNGRADE,False)
                     if self.sides>0:
                         self.sides -= 1 
                         if(self.sides>2):
@@ -98,12 +98,12 @@ class Player():
                         self.partialResources=0
                         if self.sides < 3:
                                 self.sides += 1
-                                self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
+                                self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True)
                         elif self.resources < self.sides:
                                 self.resources += 1
         def upgrade(self):
                 if(self.sides >= 3 and self.sides==self.resources and self.sides<6):
-                       self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
+                       self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True)
                        self.resources=0
                        self.sides+=1 
 
@@ -112,10 +112,10 @@ class Player():
                         self.scanning.start()
         
         def performAttack(self):
-                self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK)
+                self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK,False)
 
         def performBuild(self):
-                self.animations.addAnimation(AnimatedActions.PLAYER_BUILD)
+                self.animations.addAnimation(AnimatedActions.PLAYER_BUILD,False)
                         
                 
             
@@ -144,7 +144,7 @@ class Building():
             
         def explode(self,player):
                 
-                self.animations.addAnimation(AnimatedActions.BUILDING_EXPLODED)
+                self.animations.addAnimation(AnimatedActions.BUILDING_EXPLODED,False)
 
                 player.sides = 0
                 player.resources = 0
@@ -176,7 +176,7 @@ class Building():
 
                         if buildingLeveledUp:
                                 self.size = self.sides
-                                self.animations.addAnimation(AnimatedActions.BUILDING_UPGRADED)
+                                self.animations.addAnimation(AnimatedActions.BUILDING_UPGRADED,True)
                 
 
         def isTrap(self):
@@ -191,7 +191,7 @@ class Building():
                 return self.sides == 5
 
         def hit(self):
-                self.animations.addAnimation(AnimatedActions.BUILDING_ATTACKED)
+                self.animations.addAnimation(AnimatedActions.BUILDING_ATTACKED,False)
                 if not (self.sides and self.resources):
                     return 0
                 elif self.resources:

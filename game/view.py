@@ -2,7 +2,7 @@
 from collections import deque
 
 # pyGame
-import pygame,time
+import pygame,time,pygame.mixer
 
 # twisted
 from twisted.python.filepath import FilePath
@@ -23,15 +23,53 @@ def loadImage(path):
     """
     return pygame.image.load(path.path)
 
+sounds = dict()
+
+def _initSounds():
+#    pygame.mixer.init(frequency=16000)#, size=-8, channels=1)
+    sounds["trigger trap"] = pygame.mixer.Sound("data/sfx/alex_sfx/Trigger Trap.wav")
+    sounds["explosion"] = pygame.mixer.Sound("data/sfx/alex_sfx/Attack Hit.wav")
+
+    sounds["attack"] = pygame.mixer.Sound("data/sfx/alex_sfx/attack.wav")
+    sounds["poly armor full"] = pygame.mixer.Sound("data/sfx/alex_sfx/Points Full.wav")
+    sounds["player upgrade"] = pygame.mixer.Sound("data/sfx/alex_sfx/You upgraded.wav")
+
+    sounds["accept upgrade"] = pygame.mixer.Sound("data/sfx/alex_sfx/accept_upgrade.wav")
+
+    sounds["gain poly armor"] = pygame.mixer.Sound("data/sfx/alex_sfx/gain resource.wav")
+    sounds["lose poly armor"] = pygame.mixer.Sound("data/sfx/alex_sfx/pay resource.wav")
+    sounds["poly armor depleted"] = pygame.mixer.Sound("data/sfx/alex_sfx/resources depleted.wav")
+
+    sounds["mining"] = pygame.mixer.Sound("data/sfx/alex_sfx/In Resource Pool(loop).wav")
+
+    sounds["building",3] = pygame.mixer.Sound("data/sfx/alex_sfx/Building 3-sided.wav")
+    sounds["building",4] = pygame.mixer.Sound("data/sfx/alex_sfx/Building 4-sided.wav")
+    sounds["building",5] = pygame.mixer.Sound("data/sfx/alex_sfx/Building 5-sided.wav")
+
+    sounds["finish building",3] = pygame.mixer.Sound("data/sfx/alex_sfx/Finish 3-sided.wav")
+    sounds["finish building",4] = pygame.mixer.Sound("data/sfx/alex_sfx/Finish 4-sided.wav")
+    sounds["finish building",5] = pygame.mixer.Sound("data/sfx/alex_sfx/Finish 5-sided.wav")
+
+    sounds["scanning"] = pygame.mixer.Sound("data/sfx/alex_sfx/Sweeping.wav")
+
+def getSound(strIdx, nIndex = None):
+    if not nIndex == None:
+        return sounds[strIdx, nIndex]
+    else:
+        return sounds[strIdx]
+
+
+
 class AnimatedActions():
 
-    PLAYER_ATTACK  = 1
-    PLAYER_SCAN    = 2
-    PLAYER_BUILD    = 3
-    PLAYER_UPGRADE    =4
-    BUILDING_UPGRADED = 5
-    BUILDING_ATTACKED = 6
-    BUILDING_EXPLODED = 7
+    PLAYER_ATTACK       = 1
+    PLAYER_SCAN         = 2
+    PLAYER_BUILD        = 3
+    PLAYER_UPGRADE      = 4
+    PLAYER_DOWNGRADE    = 5
+    BUILDING_UPGRADED   = 6
+    BUILDING_ATTACKED   = 7
+    BUILDING_EXPLODED   = 8
 
     def __init__(self):  
         #animation related variables
@@ -40,28 +78,41 @@ class AnimatedActions():
         self.animationSize = 0 
         self.animation = [] 
         self.animationLastFired = 0 
+        
 
-    def addAnimation(self,animtype):
-
-        if(len(self.animation)==0):
+    def addAnimation(self,animtype,clean):
+        
+        if(len(self.animation)==0 or clean):
+                self.animation = []
                 self.animationFps = 30                
                 self.animationLastFired =time.time()
                 self.animationCounter = 0 
                 self.animationSize = 6 
             
         if(animtype == AnimatedActions.PLAYER_ATTACK): 
+                pygame.mixer.Channel(1).play(getSound("attack"))
                 self.animation.append("Attack")
         elif(animtype == AnimatedActions.PLAYER_BUILD): 
+                pygame.mixer.Channel(2).play(getSound("mining"))
                 self.animation.append("mining")
-        elif(animtype == AnimatedActions.PLAYER_UPGRADE): 
+        elif(animtype == AnimatedActions.PLAYER_UPGRADE):
+                pygame.mixer.Channel(3).play(getSound("player upgrade")) 
+                pygame.mixer.Channel(2).stop()
+                self.animation.append("LevelUp")
+        elif(animtype == AnimatedActions.PLAYER_DOWNGRADE):
+                pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
                 self.animation.append("LevelUp")
         elif(animtype == AnimatedActions.BUILDING_ATTACKED): 
                 self.animation.append("BuildingAttacked")
-        elif(animtype == AnimatedActions.BUILDING_EXPLODED): 
+        elif(animtype == AnimatedActions.BUILDING_EXPLODED):
+                pygame.mixer.Channel(5).play(getSound("trigger trap"))
+                pygame.mixer.Channel(6).play(getSound("explosion")) 
                 self.animation.append("TrapExplosion")
         elif(animtype == AnimatedActions.BUILDING_UPGRADED): 
+                pygame.mixer.Channel(7).play(getSound("finish building", 3), 0)
+                pygame.mixer.Channel(2).stop()
                 self.animation.append("building upgraded")
-
+    
     def drawAnimation(self,view, position):
         if(len(self.animation)==0):
                 return
@@ -81,6 +132,7 @@ class AnimatedActions():
 class Window(object):
     def __init__(self, environment):
         self.environment = environment
+        _initSounds()
         self.environment.view = self
         self.images = Images(FilePath("data").child("img2"))
         self.images.load()
@@ -147,6 +199,7 @@ class Window(object):
 			self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p))
 			
     def drawPlayer(self,player,position,isVisible):
+
         if isVisible:
                 image = self.images.images["Player", player.team, player.sides]
                 image.draw(self.screen, position)
@@ -158,7 +211,9 @@ class Window(object):
                 
                 if player.scanning.isScanning():
                         self.images.images["PlayerScan"].drawScaled(self.screen, position, player.getScanRadius())
-
+                        if not pygame.mixer.Channel(7).get_busy():
+                                pygame.mixer.Channel(7).play(getSound("scanning"))
+                                pygame.mixer.Channel(7).fadeout(4000)
         else:
                 image = self.images.images["Enemy", player.team]
                 image.draw(self.screen, position)
