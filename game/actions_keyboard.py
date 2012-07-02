@@ -119,10 +119,7 @@ class PlayerController(object):
             #self.view.addAction("sweep")
         elif self._currentAction == UPGRADE:
             #make upgrade key toggle the upgrade action
-            if lastAction != UPGRADE:
-                pass #self.perspective.callRemote('startUpgrading')
-            else:# lastAction == UPGRADE:
-                pass #self.perspective.callRemote('finishUpgrading')
+            self.view.environment.action = 4
         else:
             self._currentAction = None
 

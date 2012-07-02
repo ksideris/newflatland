@@ -55,7 +55,12 @@ class Player():
                                 self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
                         elif self.resources < self.sides:
                                 self.resources += 1
-                
+        def upgrade(self):
+                if(self.sides >= 3 and self.sides==self.resources and self.sides<6):
+                       self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
+                       self.resources=0
+                       self.sides+=1 
+        
         def performAttack(self):
                 self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK)
 
@@ -74,6 +79,7 @@ class Building():
         EXPLODED = 3
         
         SENTRY_RANGE = 13.75
+
         def __init__(self):
                 self.sides = 1
                 self.resources = 1
@@ -102,14 +108,13 @@ class Building():
                 if self.partialResources==self.NoPartial :
                         self.partialResources=0
                         buildingLeveledUp = False
-                        if not self.sides:
-                            if self.resources == 2:
+                        
+                        player.resources -=1
+                        if self.sides==2:
                                 self.sides = 3
-                                self.resources = 0
+                                self.resources = 1
                                 buildingLeveledUp = True
-                            else:
-                                self.resources += 1
-                                player.resources -=1
+                           
                         elif self.sides<5 or self.resources<5:
                             # if armor is full
                             if self.sides == self.resources :
@@ -118,7 +123,6 @@ class Building():
                                 buildingLeveledUp = True
                             else:
                                 self.resources += 1
-                                player.resources -=1
 
                         if buildingLeveledUp:
                             

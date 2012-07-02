@@ -125,6 +125,9 @@ class Environment(): #in an MVC system , this would be a controller
 
                         elif(player.action == Player.BUILD): #building
                                 self.handleBuild(player)
+
+                        elif(player.action == Player.UPGRADE): #building
+                                self.handleUpgrade(player)
                                               
                         for b in self.buildings.itervalues():
                              if   (b.position - player.position) < Environment.BUILDING_DISTANCE and b.isTrap() and b.team<>player.team:         
@@ -169,9 +172,17 @@ class Environment(): #in an MVC system , this would be a controller
                                         player.performBuild() 
                                         BUILDING.build(player) 
         
-        #def handleUpgrade(self):
-                
-
+        def handleUpgrade(self,player):
+                allowedUpgradeLoc = False
+                if(self.ResourcePool.position-player.position< self.ResourcePool.size):
+                        allowedUpgradeLoc=True
+                else:
+                        for b in self.buildings.itervalues():
+                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position) <b.size): 
+                                        allowedUpgradeLoc=True
+                                        break
+                if(allowedUpgradeLoc):
+                       player.upgrade() 
 
         def start(self):
                 '''controls the environment by initiating the looping calls'''
