@@ -86,6 +86,7 @@ class Player():
         def hit(self):
                 if self.resources:
                     self.resources -= 1
+                    self.animations.addAnimation( AnimatedActions.PLAYER_LOSE_RESOURCE,False)
                 else:
                     self.animations.addAnimation( AnimatedActions.PLAYER_DOWNGRADE,False)
                     if self.sides>0:
@@ -101,6 +102,7 @@ class Player():
                                 self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True)
                         elif self.resources < self.sides:
                                 self.resources += 1
+                                self.animations.addAnimation( AnimatedActions.PLAYER_GAIN_RESOURCE,False)
         def upgrade(self):
                 if(self.sides >= 3 and self.sides==self.resources and self.sides<6):
                        self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True)
@@ -108,7 +110,7 @@ class Player():
                        self.sides+=1 
 
         def scan(self):
-                if(not self.scanning.isScanning()):
+                if(not self.scanning.isScanning() and self.sides >= 3):
                         self.scanning.start()
         
         def performAttack(self):

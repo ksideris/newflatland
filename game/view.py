@@ -67,9 +67,11 @@ class AnimatedActions():
     PLAYER_BUILD        = 3
     PLAYER_UPGRADE      = 4
     PLAYER_DOWNGRADE    = 5
-    BUILDING_UPGRADED   = 6
-    BUILDING_ATTACKED   = 7
-    BUILDING_EXPLODED   = 8
+    PLAYER_LOSE_RESOURCE= 6
+    PLAYER_GAIN_RESOURCE= 7
+    BUILDING_UPGRADED   = 8
+    BUILDING_ATTACKED   = 9
+    BUILDING_EXPLODED   = 10
 
     def __init__(self):  
         #animation related variables
@@ -93,7 +95,10 @@ class AnimatedActions():
                 pygame.mixer.Channel(1).play(getSound("attack"))
                 self.animation.append("Attack")
         elif(animtype == AnimatedActions.PLAYER_BUILD): 
-                pygame.mixer.Channel(2).play(getSound("mining"))
+                if not pygame.mixer.Channel(2).get_busy():
+                            pygame.mixer.Channel(2).play(getSound("mining"))
+                else:
+                            pygame.mixer.Channel(2).queue(getSound("mining"))
                 self.animation.append("mining")
         elif(animtype == AnimatedActions.PLAYER_UPGRADE):
                 pygame.mixer.Channel(3).play(getSound("player upgrade")) 
@@ -102,6 +107,10 @@ class AnimatedActions():
         elif(animtype == AnimatedActions.PLAYER_DOWNGRADE):
                 pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
                 self.animation.append("LevelUp")
+        elif(animtype == AnimatedActions.PLAYER_LOSE_RESOURCE): 
+                pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
+        elif(animtype == AnimatedActions.PLAYER_GAIN_RESOURCE): 
+                pygame.mixer.Channel(4).play(getSound("gain poly armor")) 
         elif(animtype == AnimatedActions.BUILDING_ATTACKED): 
                 self.animation.append("BuildingAttacked")
         elif(animtype == AnimatedActions.BUILDING_EXPLODED):

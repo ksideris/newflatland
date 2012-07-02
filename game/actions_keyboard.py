@@ -13,13 +13,6 @@ import pygame.mouse
 import pygame.time
 import sys
 
-
-
-
-
-
-
-
 # TODO: Can we have a keymap file?
 from pygame import (K_a as ATTACK,
                     K_s as SCAN,
