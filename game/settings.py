@@ -33,6 +33,7 @@ class Images:
         
         #Warning: old scan
         self.images["PlayerScan"] = Image(dir.child("players").child("scan").child("player_scan.png"))
+        self.images["SentryScan"] = Image(dir.child("buildings").child("sentry").child("sentry_zones").child("sentry_vision.png"))
         
         teamDir = dir.child("players").child("polygons")
         sides = {0 : "dot", 1 : "line", 2 : "cross", 3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}

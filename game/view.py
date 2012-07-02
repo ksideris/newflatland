@@ -233,7 +233,7 @@ class Window(object):
                         self.images.images["Building Zone", building.sides, building.team].draw(self.screen, position)
                         self.images.images["BuildingHealth", building.team, building.sides, building.resources].draw(self.screen, position)
                 if building.isSentry():
-                        self.images.images["PlayerScan"].drawScaled(self.screen, position, building.SENTRY_RANGE)
+                        self.images.images["SentryScan"].drawScaled(self.screen, position, building.SENTRY_RANGE)
 
 
     def drawHUD(self): 

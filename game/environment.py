@@ -80,20 +80,12 @@ class Environment(): #in an MVC system , this would be a controller
                     self.TrueTimeLeft =0
 
 
-        def testUpdatePlayers(self):
-                '''for playerId in self.players:
-                    p = self.players[playerId]
-                    p.position+=Vector2D(.1,0)
-                    #print p.position
-                    if(p.position.x>20):
-                        p.position=Vector2D(-20,p.position.y)
-                '''
-                pass
+
 
         def Update(self):
                 self.updateTime()
                 self.scores =self.calculateScores()
-                self.testUpdatePlayers()
+                
                 self.writeStateToServer()
                 self.readStateFromServer()
                 self.processNewState()
@@ -195,8 +187,7 @@ class Environment(): #in an MVC system , this would be a controller
              player.scan()    
 
         def handleIdle(self,player):
-             #if(player.scanning.isScanning()):
-             #  player.scanning.stop()
+
              pass  
 
         def start(self):
