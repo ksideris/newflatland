@@ -121,46 +121,58 @@ class Environment(): #in an MVC system , this would be a controller
                         
 
                         if(player.action == Player.ATTACK): #ATTACK
-                                player.addAnimation(player.action)      
-                                for p in self.players.itervalues():
-                                        if (p.team != player.team) and (p.position - player.position) < Environment.ATTACK_DISTANCE:
-                                                p.hit()
-                                for b in self.buildings.itervalues():
-                                        if (b.team != player.team) and (b.position - player.position) < Environment.ATTACK_DISTANCE:
-                                                b.hit()
+                                self.handleAttack(player)
 
                         elif(player.action == Player.BUILD): #building
-                                ACTION = "BUILD"
-                                if(self.ResourcePool.position-player.position< self.ResourcePool.size):
-                                        ACTION ="MINE"
-                                else:
-                                        for b in self.buildings.itervalues():
-                                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position) <b.size):
-                                                        ACTION ="MINE"
-                                                        break      
-                                if( ACTION =="MINE"):
-                                        player.addAnimation(player.action) 
-                                        player.mine()
-                                         
-                                else:
-                                        if(player.resources>0):
-                                                BUILDING =None
-                                                for b in self.buildings.itervalues():
-                                                        if   (b.position - player.position) < Environment.BUILDING_DISTANCE:
-                                                                BUILDING =b
-                                                                break
-                                                if BUILDING ==None :#should drop resource
-                                                       self.createBuilding(  player.team, player.position)                       
-                                                       player.resources-=1 
-
-                                                elif BUILDING.team ==player.team:
-                                                       player.addAnimation(player.action) 
-                                                       BUILDING.build(player) 
+                                self.handleBuild(player)
                                               
                         for b in self.buildings.itervalues():
                              if   (b.position - player.position) < Environment.BUILDING_DISTANCE and b.isTrap() and b.team<>player.team:         
                                         b.explode(player)   
         
+
+
+        def handleAttack(self,player):
+                player.performAttack()  
+                for p in self.players.itervalues():
+                        if (p.team != player.team) and (p.position - player.position) < Environment.ATTACK_DISTANCE:
+                                p.hit()
+                for b in self.buildings.itervalues():
+                        if (b.team != player.team) and (b.position - player.position) < Environment.ATTACK_DISTANCE:
+                                b.hit()
+
+        def handleBuild(self,player):
+                ACTION = "BUILD"
+                if(self.ResourcePool.position-player.position< self.ResourcePool.size):
+                        ACTION ="MINE"
+                else:
+                        for b in self.buildings.itervalues():
+                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position) <b.size):
+                                        ACTION ="MINE"
+                                        break      
+                if( ACTION =="MINE"):
+                        player.performBuild()  
+                        player.mine()
+                                         
+                else:
+                        if(player.resources>0):
+                                BUILDING =None
+                                for b in self.buildings.itervalues():
+                                        if   (b.position - player.position) < Environment.BUILDING_DISTANCE:
+                                                BUILDING =b
+                                                break
+                                if BUILDING ==None :
+                                        self.createBuilding(  player.team, player.position)                       
+                                        player.resources-=1 
+
+                                elif BUILDING.team ==player.team:
+                                        player.performBuild() 
+                                        BUILDING.build(player) 
+        
+        #def handleUpgrade(self):
+                
+
+
         def start(self):
                 '''controls the environment by initiating the looping calls'''
                 self.TrueTimeLeft=Environment.GAME_DURATION

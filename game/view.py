@@ -2,7 +2,7 @@
 from collections import deque
 
 # pyGame
-import pygame
+import pygame,time
 
 # twisted
 from twisted.python.filepath import FilePath
@@ -11,7 +11,6 @@ from twisted.internet.task import LoopingCall
 # local
 from vector import Vector2D
 from settings import Images
-
 
 def loadImage(path):
     """
@@ -23,6 +22,59 @@ def loadImage(path):
     """
     return pygame.image.load(path.path)
 
+class AnimatedActions():
+
+    PLAYER_ATTACK  = 1
+    PLAYER_SCAN    = 2
+    PLAYER_BUILD    = 3
+    PLAYER_UPGRADE    =4
+    BUILDING_UPGRADED = 5
+    BUILDING_ATTACKED = 6
+    BUILDING_EXPLODED = 7
+
+    def __init__(self):  
+        #animation related variables
+        self.animationCounter = 0 
+        self.animationFps =0
+        self.animationSize = 0 
+        self.animation = [] 
+        self.animationLastFired = 0 
+
+    def addAnimation(self,animtype):
+
+        if(len(self.animation)==0):
+                self.animationFps = 30                
+                self.animationLastFired =time.time()
+                self.animationCounter = 0 
+                self.animationSize = 6 
+            
+        if(animtype == AnimatedActions.PLAYER_ATTACK): 
+                self.animation.append("Attack")
+        elif(animtype == AnimatedActions.PLAYER_BUILD): 
+                self.animation.append("mining")
+        elif(animtype == AnimatedActions.PLAYER_UPGRADE): 
+                self.animation.append("LevelUp")
+        elif(animtype == AnimatedActions.BUILDING_ATTACKED): 
+                self.animation.append("BuildingAttacked")
+        elif(animtype == AnimatedActions.BUILDING_EXPLODED): 
+                self.animation.append("TrapExplosion")
+        elif(animtype == AnimatedActions.BUILDING_UPGRADED): 
+                self.animation.append("building upgraded")
+
+    def drawAnimation(self,view, position):
+        if(len(self.animation)==0):
+                return
+        if(self.animationCounter>= self.animationSize):
+                self.animationCounter = 0 
+                self.animationLastFired = time.time() 
+                self.animation = self.animation[1:] 
+                return
+        else:
+                anim = view.images.images[self.animation[0]]
+                image = anim.getImage(self.animationCounter)
+                image.draw(view.screen, position)
+                if(time.time()-  self.animationLastFired>1.0/self.animationFps ):
+                    self.animationCounter+=1       
 
 
 class Window(object):
@@ -68,8 +120,9 @@ class Window(object):
             return True
         # Object in range of my sentries
         for b in self.environment.buildings.itervalues():
-            if b.isSentry() and (b.team == self.environment.team) and (entity.position - b.position) < 13.75:
+            if b.isSentry() and (b.team == self.environment.team) and (entity.position - b.position) < b.SENTRY_RANGE:
                 return True
+            
         # object in range of a scanning player
         '''for p in self.environment.players.itervalues():
             if (self.environment.team == p.team):
@@ -78,6 +131,7 @@ class Window(object):
         '''
         return False
 
+    
 
     def drawEnvironment(self):
 		'''Draw the state of the environment. This is called by view after drawing the background. 
@@ -86,12 +140,39 @@ class Window(object):
 		    self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
 
 		for b in self.environment.buildings.itervalues():
-			b.draw(self,self.screenCoord(b.position),self.isVisible(b) )
-
+                        self.drawBuilding(b,self.screenCoord(b.position),self.isVisible(b))
+			
 		for p in self.environment.players.itervalues(): 
-			isVisible = (p.team == self.environment.team) or self.environment.team==None
-    
-			p.draw(self,self.screenCoord(p.position),self.isVisible(p)  )
+			self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p))
+			
+    def drawPlayer(self,player,position,isVisible):
+        if isVisible:
+                image = self.images.images["Player", player.team, player.sides]
+                image.draw(self.screen, position)
+                
+                player.animations.drawAnimation(self, position)
+                
+                for i in range(0,player.resources):
+                        self.images.images["Armor", player.sides, i+1].draw(self.screen, position)
+        else:
+                image = self.images.images["Enemy", player.team]
+                image.draw(self.screen, position)
+
+    def drawBuilding(self,building,position,isVisible):
+        
+        building.animations.drawAnimation(self, position)
+
+        if not (building.sides and building.resources):
+                return 0
+
+        if isVisible:
+                
+                if building.sides:
+                        self.images.images["Building", building.sides, building.team].draw(self.screen, position)
+                if building.sides >= 3:
+                        self.images.images["Building Zone", building.sides, building.team].draw(self.screen, position)
+                        self.images.images["BuildingHealth", building.team, building.sides, building.resources].draw(self.screen, position)
+
 
     def drawHUD(self): 
         ''' Draw the HUD . It includes scores, time, and other info'''
