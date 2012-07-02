@@ -98,7 +98,7 @@ class PlayerController(object):
         if directionX != 0 or directionY != 0:
             self.position += (dt * self.speed) * direction.norm()
         self.view.environment.Position = self.position
-        pass #self.perspective.callRemote('updatePosition', self.position)
+
         self.view.setCenter(self.position)
 
 
@@ -115,8 +115,7 @@ class PlayerController(object):
         elif self._currentAction == BUILD:
             self.view.environment.action = 3
         elif self._currentAction == SCAN:
-            pass #self.perspective.callRemote('startScanning')
-            #self.view.addAction("sweep")
+            self.view.environment.action = 2            
         elif self._currentAction == UPGRADE:
             #make upgrade key toggle the upgrade action
             self.view.environment.action = 4
@@ -125,14 +124,14 @@ class PlayerController(object):
 
 
     def _finishedAction(self):
-        if self._currentAction == ATTACK:
+        '''if self._currentAction == ATTACK:
             pass
         elif self._currentAction == BUILD:
             pass #self.perspective.callRemote('finishBuilding')
         elif self._currentAction == SCAN:
-            pass #self.perspective.callRemote('finishScanning')
+            self.view.environment.action = 0 
         elif self._currentAction == UPGRADE:
-            pass #self.perspective.callRemote('finishUpgrading')
+            pass #self.perspective.callRemote('finishUpgrading')'''
         self._currentAction = None
 
         return

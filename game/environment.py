@@ -128,9 +128,15 @@ class Environment(): #in an MVC system , this would be a controller
 
                         elif(player.action == Player.UPGRADE): #building
                                 self.handleUpgrade(player)
+
+                        elif(player.action == Player.SCAN): #building
+                                self.handleScan(player)
+
+                        elif(player.action == Player.IDLE):
+                                self.handleIdle(player)
                                               
                         for b in self.buildings.itervalues():
-                             if   (b.position - player.position) < Environment.BUILDING_DISTANCE and b.isTrap() and b.team<>player.team:         
+                             if   (b.position - player.position).length < b.size and b.isTrap() and b.team<>player.team:         
                                         b.explode(player)   
         
 
@@ -138,19 +144,20 @@ class Environment(): #in an MVC system , this would be a controller
         def handleAttack(self,player):
                 player.performAttack()  
                 for p in self.players.itervalues():
-                        if (p.team != player.team) and (p.position - player.position) < Environment.ATTACK_DISTANCE:
+                        if (p.team != player.team) and (p.position - player.position).length < Environment.ATTACK_DISTANCE:
                                 p.hit()
                 for b in self.buildings.itervalues():
-                        if (b.team != player.team) and (b.position - player.position) < Environment.ATTACK_DISTANCE:
+                        if (b.team != player.team) and (b.position - player.position).length < Environment.ATTACK_DISTANCE:
                                 b.hit()
 
         def handleBuild(self,player):
                 ACTION = "BUILD"
-                if(self.ResourcePool.position-player.position< self.ResourcePool.size):
+                if((self.ResourcePool.position-player.position).length< self.ResourcePool.size):
                         ACTION ="MINE"
                 else:
                         for b in self.buildings.itervalues():
-                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position) <b.size):
+                                
+                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position).length <b.size):
                                         ACTION ="MINE"
                                         break      
                 if( ACTION =="MINE"):
@@ -161,7 +168,7 @@ class Environment(): #in an MVC system , this would be a controller
                         if(player.resources>0):
                                 BUILDING =None
                                 for b in self.buildings.itervalues():
-                                        if   (b.position - player.position) < Environment.BUILDING_DISTANCE:
+                                        if   (b.position - player.position).length < b.size:
                                                 BUILDING =b
                                                 break
                                 if BUILDING ==None :
@@ -174,15 +181,23 @@ class Environment(): #in an MVC system , this would be a controller
         
         def handleUpgrade(self,player):
                 allowedUpgradeLoc = False
-                if(self.ResourcePool.position-player.position< self.ResourcePool.size):
+                if((self.ResourcePool.position-player.position).length< self.ResourcePool.size):
                         allowedUpgradeLoc=True
                 else:
                         for b in self.buildings.itervalues():
-                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position) <b.size): 
+                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position).length <b.size): 
                                         allowedUpgradeLoc=True
                                         break
                 if(allowedUpgradeLoc):
                        player.upgrade() 
+
+        def handleScan(self,player):
+             player.scan()    
+
+        def handleIdle(self,player):
+             #if(player.scanning.isScanning()):
+             #  player.scanning.stop()
+             pass  
 
         def start(self):
                 '''controls the environment by initiating the looping calls'''

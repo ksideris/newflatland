@@ -18,6 +18,47 @@ import random,time
 
 
 
+class PlayerScan:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.startTime = 0
+        self._radius = 0
+        self._isScanning = False
+
+    def start(self):
+        
+        self.startTime = time.time()
+        self._isScanning = True
+
+    def stop(self,radius):
+        self._isScanning = False
+        self._radius = radius-.01
+        self.startTime = time.time()
+
+    def radius(self):
+
+        if self.startTime == 0:
+            return 0
+
+        dt = (time.time() - self.startTime)*1000.0
+        
+        if(dt<1000):
+                value = 2*(min(1, (dt / 1000.0)  * .9) + 0.1)
+                self._radius=value
+        else:
+                value = self._radius * (1 - ((dt-1000.0) / 5000.0))
+                if(value<0):
+                        value=0
+                        self._isScanning = False
+   
+        return  value
+
+
+
+    def isScanning(self):
+        return self._isScanning
 
 
 class Player():
@@ -34,10 +75,13 @@ class Player():
                 self.position = Vector2D(random.randint(1, 10), random.randint(1, 10)) 
                 self.sides = 3
                 self.resources = 2
-                self.action = None 
                 self.partialResources = 0 
                 self.NoPartial = 3 
+                self.action = 0
+                self.scanning = PlayerScan()
             
+        def getScanRadius(self):
+                return self.scanning.radius()
 
         def hit(self):
                 if self.resources:
@@ -45,7 +89,9 @@ class Player():
                 else:
                     self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
                     if self.sides>0:
-                        self.sides -= 1  
+                        self.sides -= 1 
+                        if(self.sides>2):
+                                self.resources = self.sides   
         def mine(self):   
                 self.partialResources += 1
                 if self.partialResources==self.NoPartial :
@@ -60,6 +106,10 @@ class Player():
                        self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE)
                        self.resources=0
                        self.sides+=1 
+
+        def scan(self):
+                if(not self.scanning.isScanning()):
+                        self.scanning.start()
         
         def performAttack(self):
                 self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK)
@@ -78,7 +128,7 @@ class Building():
         ATTACKED = 2
         EXPLODED = 3
         
-        SENTRY_RANGE = 13.75
+        SENTRY_RANGE = 2.75
 
         def __init__(self):
                 self.sides = 1
@@ -125,7 +175,7 @@ class Building():
                                 self.resources += 1
 
                         if buildingLeveledUp:
-                            
+                                self.size = self.sides
                                 self.animations.addAnimation(AnimatedActions.BUILDING_UPGRADED)
                 
 
@@ -155,7 +205,7 @@ class Building():
                 
 class ResourcePool():
         def __init__(self):
-                self.size = 3
+                self.size = 6.5
                 self.position =Vector2D(0,0)
 
     

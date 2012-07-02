@@ -12,6 +12,7 @@ from twisted.internet.task import LoopingCall
 from vector import Vector2D
 from settings import Images
 
+
 def loadImage(path):
     """
     Load an image from the L{FilePath} into a L{pygame.Surface}.
@@ -120,15 +121,15 @@ class Window(object):
             return True
         # Object in range of my sentries
         for b in self.environment.buildings.itervalues():
-            if b.isSentry() and (b.team == self.environment.team) and (entity.position - b.position) < b.SENTRY_RANGE:
+            if b.isSentry() and (b.team == self.environment.team) and (entity.position - b.position).length < b.SENTRY_RANGE*5.0:
                 return True
             
         # object in range of a scanning player
-        '''for p in self.environment.players.itervalues():
+        for p in self.environment.players.itervalues():
             if (self.environment.team == p.team):
-                if (entity.position - p.position) < p.getScanRadius() * 5:
+                if (entity.position - p.position).length < p.getScanRadius()*5 :
                     return True
-        '''
+        
         return False
 
     
@@ -154,6 +155,10 @@ class Window(object):
                 
                 for i in range(0,player.resources):
                         self.images.images["Armor", player.sides, i+1].draw(self.screen, position)
+                
+                if player.scanning.isScanning():
+                        self.images.images["PlayerScan"].drawScaled(self.screen, position, player.getScanRadius())
+
         else:
                 image = self.images.images["Enemy", player.team]
                 image.draw(self.screen, position)
@@ -172,6 +177,8 @@ class Window(object):
                 if building.sides >= 3:
                         self.images.images["Building Zone", building.sides, building.team].draw(self.screen, position)
                         self.images.images["BuildingHealth", building.team, building.sides, building.resources].draw(self.screen, position)
+                if building.isSentry():
+                        self.images.images["PlayerScan"].drawScaled(self.screen, position, building.SENTRY_RANGE)
 
 
     def drawHUD(self): 
