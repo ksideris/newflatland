@@ -78,7 +78,7 @@ class Environment(): #in an MVC system , this would be a controller
 
 		
 		self.view.start('client')
-		self.client.start('192.168.1.102','7022')
+		self.client.start('192.168.1.102','80')
 		self._renderCall = LoopingCall(self.Update) 
 		self._requestCall = LoopingCall(self.makeRequest) 
 		self._renderCall.start(1.0/Environment.FPS)	

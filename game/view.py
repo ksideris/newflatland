@@ -171,9 +171,9 @@ class Window(object):
 
         self.drawEnvironment()
        	self.drawHUD()
-
+		
         pygame.display.flip()
-
+       	pygame.time.Clock().tick(300)
     def isVisible(self, entity):
         if not self.environment.team:
             return True

@@ -90,7 +90,10 @@ class Environment(): #in an MVC system , this would be a controller
                 self.readStateFromServer()
                 self.processNewState()
                 self.view.paint()
-        
+                for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
         def processNewState(self):
     
                 for action in self.actions:
