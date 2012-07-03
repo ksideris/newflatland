@@ -17,9 +17,11 @@ class GameStateTransmitter(RequestHandler):
         #print gest
         env = None
         try:
-            env = pickle.load(  open( "ServerIn.p", "rb" ) )  
+            serverInfile=open( "ServerIn.p", "rb" ) 
+            env = pickle.load( serverInfile )
+            serverInfile.close()
         except Exception:
-            pass
+            print sys.exc_info()[0],'unpickling ServerIn'
 
         if(env<>None):
             self.write(env)
@@ -30,7 +32,9 @@ class GameStateTransmitter(RequestHandler):
         self.finish()
         gestures=[]
         try:
-            gestures =  pickle.load(  open( "ServerOut.p", "rb" ) ) 
+            serverOutfile=open( "ServerOut.p", "rb" )
+            gestures =  pickle.load(  serverOutfile )
+            serverOutfile.close()
             #gestures =[]    
             #print  gest   
             
@@ -42,10 +46,14 @@ class GameStateTransmitter(RequestHandler):
             #    gestures=gestures[1:]
             
         except Exception:
-            print sys.exc_info()[0]
-        pickle.dump(gestures, open( "ServerOut.p", "wb" ) )
-		
+            print sys.exc_info()[0],'unpickling ServerOut'
 
+        try:    
+            serverOutfile=open( "ServerOut.p", "wb" )
+            pickle.dump(gestures, serverOutfile)
+            serverOutfile.close()	
+        except Exception:
+            print sys.exc_info()[0],'pickling ServerOut'
 	
 
 class Server():

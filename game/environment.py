@@ -225,16 +225,21 @@ class Environment(): #in an MVC system , this would be a controller
 
         #FUNCTIONS FOR NETWORKING
         def writeStateToServer(self):
-                                
-                pickle.dump( self.cSerialize(), open( "ServerIn.p", "wb" ) )
-                
+                stateFile =  open( "ServerIn.p", "wb" )                
+                pickle.dump( self.cSerialize(),stateFile )
+                stateFile.close()
                 
         def readStateFromServer(self):
-                #print self.actions                 
+  
                 try:
-                        self.actions     = pickle.load(  open( "ServerOut.p", "rb" ) ) 
-                        pickle.dump( [], open( "ServerOut.p", "wb" ) )
-
+                        actionFile =  open( "ServerOut.p", "rb" )         
+                        self.actions     = pickle.load(  actionFile )
+                        actionFile.close()
+                        
+                        actionFile =  open( "ServerOut.p", "wb" )     
+                        pickle.dump( [],  actionFile )
+                        actionFile.close()
+                        
                 except Exception:
                         print 'env1',sys.exc_info()[0]
         
