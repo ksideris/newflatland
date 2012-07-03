@@ -1,1 +1,0 @@
-python gameclient.py 0 1

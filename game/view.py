@@ -101,24 +101,32 @@ class AnimatedActions():
                             pygame.mixer.Channel(2).queue(getSound("mining"))
                 self.animation.append("mining")
         elif(animtype == AnimatedActions.PLAYER_UPGRADE):
-                pygame.mixer.Channel(3).play(getSound("player upgrade")) 
+            if not pygame.mixer.Channel(7).get_busy():
+                pygame.mixer.Channel(7).play(getSound("player upgrade")) 
                 pygame.mixer.Channel(2).stop()
                 self.animation.append("LevelUp")
         elif(animtype == AnimatedActions.PLAYER_DOWNGRADE):
+            if not pygame.mixer.Channel(4).get_busy():
                 pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
                 self.animation.append("LevelUp")
         elif(animtype == AnimatedActions.PLAYER_LOSE_RESOURCE): 
+            if not pygame.mixer.Channel(4).get_busy():
                 pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
         elif(animtype == AnimatedActions.PLAYER_GAIN_RESOURCE): 
+            if not pygame.mixer.Channel(4).get_busy():
                 pygame.mixer.Channel(4).play(getSound("gain poly armor")) 
         elif(animtype == AnimatedActions.BUILDING_ATTACKED): 
                 self.animation.append("BuildingAttacked")
         elif(animtype == AnimatedActions.BUILDING_EXPLODED):
+            if not pygame.mixer.Channel(5).get_busy():
                 pygame.mixer.Channel(5).play(getSound("trigger trap"))
+            if not pygame.mixer.Channel(6).get_busy():
                 pygame.mixer.Channel(6).play(getSound("explosion")) 
                 self.animation.append("TrapExplosion")
         elif(animtype == AnimatedActions.BUILDING_UPGRADED): 
+            if not pygame.mixer.Channel(7).get_busy():
                 pygame.mixer.Channel(7).play(getSound("finish building", 3), 0)
+            if not pygame.mixer.Channel(2).get_busy():
                 pygame.mixer.Channel(2).stop()
                 self.animation.append("building upgraded")
     
@@ -170,10 +178,10 @@ class Window(object):
             x += bgWidth
 
         self.drawEnvironment()
-       	self.drawHUD()
-		
+        self.drawHUD()
+        
         pygame.display.flip()
-       	pygame.time.Clock().tick(300)
+        pygame.time.Clock().tick(300)
     def isVisible(self, entity):
         if not self.environment.team:
             return True
@@ -196,17 +204,17 @@ class Window(object):
     
 
     def drawEnvironment(self):
-		'''Draw the state of the environment. This is called by view after drawing the background. 
-		   This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
-		if(self.environment.ResourcePool<>None):
-		    self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
+        '''Draw the state of the environment. This is called by view after drawing the background. 
+           This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
+        if(self.environment.ResourcePool<>None):
+            self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
 
-		for b in self.environment.buildings.itervalues():
+        for b in self.environment.buildings.itervalues():
                         self.drawBuilding(b,self.screenCoord(b.position),self.isVisible(b))
-			
-		for p in self.environment.players.itervalues(): 
-			self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p))
-			
+            
+        for p in self.environment.players.itervalues(): 
+            self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p))
+            
     def drawPlayer(self,player,position,isVisible):
 
         if isVisible:
@@ -274,7 +282,7 @@ class Window(object):
         self.screen.blit(text,textrect)
 
         #Draw the scores
-		
+        
         fontColors = [(255, 0, 0), (0,255,255)]
         if(self.environment.IsServer): 
             
@@ -284,7 +292,7 @@ class Window(object):
             self.screen.blit(text,textrect)
 
             text = font.render(str(self.environment.scores[1]), True, fontColors[1])
-		
+        
             textrect = text.get_rect(right =735, top = 80)
         else:
             font = pygame.font.Font("data/Deutsch.ttf", 35)

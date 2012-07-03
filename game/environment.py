@@ -35,6 +35,7 @@ class Environment(): #in an MVC system , this would be a controller
                 self.TrueTimeLeft = 0         
                 self.scores =[0,0]     
                 self.GameOver =False
+                self.GameStarted =False
                 self.width = 80.0
                 self.height = 48.0
                 self.view =None
@@ -71,13 +72,22 @@ class Environment(): #in an MVC system , this would be a controller
                 return building
 
         
+        def StartGame(self):
+                self.GameStarted=True
+                for playerId in self.players:
+                     self.players[playerId].sides=3
+                     self.players[playerId].resources=0
+                     
+                self.buildings.clear()
 
+                
         def updateTime(self):
-                self.TrueTimeLeft-=1.0/Environment.FPS
-                self.TimeLeft = int(self.TrueTimeLeft)  
-                if(     self.TrueTimeLeft<=0):
-                    self.GameOver =True
-                    self.TrueTimeLeft =0
+                if(self.GameStarted):
+                        self.TrueTimeLeft-=1.0/Environment.FPS
+                        self.TimeLeft = int(self.TrueTimeLeft)  
+                        if(     self.TrueTimeLeft<=0):
+                            self.GameOver =True
+                            self.TrueTimeLeft =0
 
 
 
@@ -94,6 +104,9 @@ class Environment(): #in an MVC system , this would be a controller
                         if event.type == pygame.QUIT:
                                 pygame.quit()
                                 sys.exit()
+                        if event.type == pygame.KEYDOWN:
+                                if event.key==pygame.K_s:
+                                        self.StartGame()
         def processNewState(self):
     
                 for action in self.actions:
@@ -196,6 +209,7 @@ class Environment(): #in an MVC system , this would be a controller
         def start(self):
                 '''controls the environment by initiating the looping calls'''
                 self.TrueTimeLeft=Environment.GAME_DURATION
+                self.TimeLeft = int(self.TrueTimeLeft)
                 pickle.dump( [], open( "ServerOut.p", "wb" ) )
                 self.view.start('Server')
                 self._renderCall = LoopingCall(self.Update)
