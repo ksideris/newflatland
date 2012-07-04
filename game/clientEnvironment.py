@@ -22,7 +22,8 @@ from twisted.internet.task import LoopingCall
 import time,random
 import pickle,sys #TODO change to cPickle for speed
 
-
+import shelve
+CLIENTLOCALDATA = 'ClientLocalData.db'
 
 class Environment(): #in an MVC system , this would be a controller
     ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
@@ -31,7 +32,7 @@ class Environment(): #in an MVC system , this would be a controller
     FPS=30
     
 
-    def __init__(self,player_id,team):
+    def __init__(self,player_id,team,serverIP,serverPort):
 		'''State: Players,Buildings, Time, Resourse Pool'''
 		self.players 	= {}
 		self.buildings 	= {}
@@ -48,7 +49,9 @@ class Environment(): #in an MVC system , this would be a controller
 		self.scores =[0,0]
 		self.IsServer = False
 		self.ResourcePool = None
-		self.client = AsyncClient()     
+		self.client = AsyncClient()
+		self.serverIP =serverIP
+		self.serverPort = serverPort
 
                 self.Position = (0,0)
     
@@ -77,49 +80,43 @@ class Environment(): #in an MVC system , this would be a controller
 		'''controls the environment by initiating the looping calls'''
 
 		
-		self.view.start('client')
-		self.client.start('192.168.1.102','80')
+		self.view.start('client-'+str(self.playerID))
+		self.client.start(self.serverIP,self.serverPort)
 		self._renderCall = LoopingCall(self.Update) 
 		self._requestCall = LoopingCall(self.makeRequest) 
 		self._renderCall.start(1.0/Environment.FPS)	
-		self._requestCall.start(0.03)	
+		self._requestCall.start(1.0/Environment.FPS)	
 
 
 	#FUNCTIONS FOR NETWORKING
 	
     def deSerialize(self):
-        s=None
+        state=None
+        localdb = shelve.open(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1])
         try:
-            s = pickle.load(open( "ClientData.p", "rb" ) )
-        except Exception:
-			print 'Error Loading Client Data',sys.exc_info()[0]
-        
-        if(s<>None):
-            t = s.split('$')
-            #print len(t)
-            try:
-                players =  pickle.loads(t[0]) #update players
-                self.players.clear()
-                for p in players.itervalues():                    
-                    self.players[id(p)] = p
-                    if p.player_id == self.playerID:
-                        p.position = Vector2D(self.Position)
-                        p.action = self.action
 
-                buildings =  pickle.loads(t[1]) #update buildings
-                self.buildings.clear()
-                for b in buildings.itervalues():                    
-                    self.buildings[id(b)] = b
-                self.ResourcePool = pickle.loads(t[2])
-                self.scores =pickle.loads(t[3])
-                self.TimeLeft =int(t[4])
+            state = localdb['data']['string']             
 
+        finally:
+            localdb.close()
                 
-            except Exception:
-			    print 'Something went wrong while deserializing:',sys.exc_info()[0]
-        else:
-            print sys.exc_info()[0]
+        if(state<>None):
+            t = state.split('$')
+            players =  pickle.loads(t[0]) #update players
+            self.players.clear()
+            for p in players.itervalues():                    
+                self.players[id(p)] = p
+                if p.player_id == self.playerID:
+                            p.position = Vector2D(self.Position)
+                            p.action = self.action
 
+            buildings =  pickle.loads(t[1]) #update buildings
+            self.buildings.clear()
+            for b in buildings.itervalues():                    
+                self.buildings[id(b)] = b
 
-	
+            self.ResourcePool = pickle.loads(t[2])
+            self.scores =pickle.loads(t[3])
+            self.TimeLeft =int(t[4])
+         
  

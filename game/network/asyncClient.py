@@ -1,6 +1,9 @@
 import asyncore, socket,pickle,time,string
-
+import shelve
 SHOW_STATISTICS =False
+ID = 0
+CLIENTLOCALDATA = 'ClientLocalData.db'
+
 class HTTPClient(asyncore.dispatcher):
 
     def __init__(self, host,port, path):
@@ -16,11 +19,17 @@ class HTTPClient(asyncore.dispatcher):
         self.close()
 
     def handle_read(self):
-		
-		s= self.recv(20000)
-		if(len(s)>0):
-		    bodyIndex =  string.index(s, "\r\n\r\n") +4
-		    pickle.dump(s[bodyIndex:], open( "ClientData.p", "wb" ) )
+	global ID
+	s= self.recv(100000)
+	if(len(s)>0):
+	    bodyIndex =  string.index(s, "\r\n\r\n") +4
+            localdb = shelve.open(CLIENTLOCALDATA.split('.')[0]+str(ID)+'.'+CLIENTLOCALDATA.split('.')[1])
+            try:
+                localdb['data']={'time':time.time(),'string':s[bodyIndex:]}
+            finally:
+                localdb.close()    
+                        
+                      
 		    
     def writable(self):
         return (len(self.buffer) > 0)
@@ -33,7 +42,8 @@ class HTTPClient(asyncore.dispatcher):
 class AsyncClient():
 
     def MakeRequest(self,pid,team,action,position):
-
+        global ID
+        ID  = pid
         start =time.time()
         message = '/?id='+str(pid)+'&team='+str(team)+'&action='+str(action)
         #print message,action

@@ -18,6 +18,7 @@ from twisted.internet.task import LoopingCall
 import time,random
 import pickle,sys #TODO change to cPickle for speed
 
+import shelve
 
 class Environment(): #in an MVC system , this would be a controller
         ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
@@ -93,12 +94,12 @@ class Environment(): #in an MVC system , this would be a controller
 
 
         def Update(self):
+                
+                startTime = time.time()
                 self.updateTime()
                 self.scores =self.calculateScores()
-                
-                self.writeStateToServer()
-                self.readStateFromServer()
-                self.processNewState()
+                if(self.actions<>None):
+                        self.processNewState()
                 self.view.paint()
                 for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -107,20 +108,21 @@ class Environment(): #in an MVC system , this would be a controller
                         if event.type == pygame.KEYDOWN:
                                 if event.key==pygame.K_s:
                                         self.StartGame()
+                print time.time()-startTime
         def processNewState(self):
-    
+            
                 for action in self.actions:
                     found= False
                     for playerId in self.players:
-                        if(self.players[playerId].player_id)==int(action[0][0]):
-                            self.players[playerId].action=int(action[2][0])
-                            pos = action[3][0].split(',')
+                        if(self.players[playerId].player_id)==int(action[0]):
+                            self.players[playerId].action=int(action[2])
+                            pos = action[3].split(',')
                             self.players[playerId].position = Vector2D(float(pos[0]),float(pos[1]))
                             found =True
                             break
 
                     if(not found):
-                        self.createPlayer(int(action[0][0]),int(action[1][0]))
+                        self.createPlayer(int(action[0]),int(action[1]))
                      
 
                 for playerId in self.players:
@@ -213,7 +215,12 @@ class Environment(): #in an MVC system , this would be a controller
                 pickle.dump( [], open( "ServerOut.p", "wb" ) )
                 self.view.start('Server')
                 self._renderCall = LoopingCall(self.Update)
-                self._renderCall.start(1.0/Environment.FPS)    
+                self._renderCall.start(1.0/Environment.FPS)
+                self._writeCall = LoopingCall( self.writeStateToServer )
+                self._writeCall.start(1.0/Environment.FPS) 
+                self._readCall = LoopingCall( self.readStateFromServer)
+                self._readCall.start(1.0/Environment.FPS) 
+                
 
 
         def calculateScores(self):
@@ -239,24 +246,38 @@ class Environment(): #in an MVC system , this would be a controller
 
         #FUNCTIONS FOR NETWORKING
         def writeStateToServer(self):
-                stateFile =  open( "ServerIn.p", "wb" )                
-                pickle.dump( self.cSerialize(),stateFile )
-                stateFile.close()
+                string =self.cSerialize()
+                
+                serv_db = shelve.open('ServerState.db')
+                try:
+                        serv_db['data']= { 'time': str(time.time()), 'string': string }                      
+                finally:
+                        serv_db.close()
                 
         def readStateFromServer(self):
-  
+
+                client_db = shelve.open('ClientState.db')
                 try:
+                        self.actions =[]
+                        for key in client_db:
+                                self.actions.append(client_db[key]['string'].split('$'))
+                        
+                finally:
+                        client_db.close()
+                '''  
+                try:
+
+                        
                         actionFile =  open( "ServerOut.p", "rb" )         
                         self.actions     = pickle.load(  actionFile )
                         actionFile.close()
-                        
                         actionFile =  open( "ServerOut.p", "wb" )     
                         pickle.dump( [],  actionFile )
                         actionFile.close()
-                        
+                       
                 except Exception:
                         print 'env1',sys.exc_info()[0]
-        
+                '''
                 #print self.actions   
 
         def cSerialize(self):
