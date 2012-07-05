@@ -1,23 +1,34 @@
 
 
 import httplib,pickle,time,sys
-
+import shelve
 SHOW_STATISTICS =False
+ID = 0
+CLIENTLOCALDATA = 'ClientLocalData.db'
+
 class SimpleClient():
 
-    def MakeRequest(self,pid,action):
+    def MakeRequest(self,pid,team,action,position):
         player_id=1
         try:
-            actions = ['attack','idle','scan','build']
-            start=time.time()   
-     
-            
+            ID  = pid
+            start =time.time()
+            message = '/?id='+str(pid)+'&team='+str(team)+'&action='+str(action)
+            if position<>None: 
+                message+='&pos='+str(position[0])+','+str(position[1])
+            message+='&time='+str(time.time())
             conn = httplib.HTTPConnection(self.server_address+':'+self.server_port)
-            conn.request("GET",  '/?id='+str(pid)+'&action='+str(action))
+            conn.request("GET",  message)
             
             s = conn.getresponse()
             data =s.read()
-            pickle.dump(data, open( "ClientData.p", "wb" ) )
+            print data
+            localdb = shelve.open(CLIENTLOCALDATA.split('.')[0]+str(ID)+'.'+CLIENTLOCALDATA.split('.')[1])
+            try:
+                localdb['data']={'time':time.time(),'string':data}
+            finally:
+                localdb.close()
+                
             
             if(SHOW_STATISTICS):
                 print 'Time Taken:',time.time()-start
