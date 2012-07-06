@@ -3,7 +3,7 @@ import shelve
 SHOW_STATISTICS =False
 ID = 0
 CLIENTLOCALDATA = 'ClientLocalData.db'
-
+message =''
 class HTTPClient(asyncore.dispatcher):
 
     def __init__(self, host,port, path):
@@ -19,17 +19,23 @@ class HTTPClient(asyncore.dispatcher):
         self.close()
 
     def handle_read(self):
-	global ID
+	global ID,message
 	s= self.recv(100000)
 	if(len(s)>0):
-	    bodyIndex =  string.index(s, "\r\n\r\n") +4
-            localdb = shelve.open(CLIENTLOCALDATA.split('.')[0]+str(ID)+'.'+CLIENTLOCALDATA.split('.')[1])
-            try:
-                localdb['data']={'time':time.time(),'string':s[bodyIndex:]}
-            finally:
-                localdb.close()    
-                        
-                      
+            if(s[:4]<>'HTTP'):
+                message+=s
+            else:
+                if(len(message)>0):
+                
+                    localdb = shelve.open(CLIENTLOCALDATA.split('.')[0]+str(ID)+'.'+CLIENTLOCALDATA.split('.')[1])
+                    try:
+                        localdb['data']={'time':time.time(),'string':message}
+                    finally:
+                        localdb.close()
+                    message=''    
+                bodyIndex =  string.index(s, "\r\n\r\n") +4
+                message += s[bodyIndex:]        
+            print message           
 		    
     def writable(self):
         return (len(self.buffer) > 0)
