@@ -16,7 +16,7 @@ from vector import Vector2D
 from game.view import AnimatedActions
 import random,time
 
-
+import json
 
 class PlayerScan:
     def __init__(self):
@@ -67,6 +67,7 @@ class Player():
         SCAN    = 2
         BUILD    = 3
         UPGRADE    =4
+        STARTSCAN    = 5
 
         def __init__(self):
                 self.player_id=-1
@@ -79,7 +80,15 @@ class Player():
                 self.NoPartial = 3 
                 self.action = 0
                 self.scanning = PlayerScan()
-            
+                #self.fullState =''
+                #self.partialState =''
+                
+        def serialize(self):
+                pass
+                #self.fullState = json.dumps({'id':self.player_id,'tm':self.team,'pos':str(self.position),'sd':self.sides,'rc':self.resources,'pr':self.partialResources,'ac':self.action})
+                #self.partialState = json.dumps({'id':self.player_id,'pos':str(self.position),'sd':self.sides,'rc':self.resources,'pr':self.partialResources,'ac':self.action})
+                #print self.State,len(self.State)
+                
         def getScanRadius(self):
                 return self.scanning.radius()
 

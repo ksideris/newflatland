@@ -150,7 +150,6 @@ class Environment(): #in an MVC system , this would be a controller
                                         b.explode(player)   
         
 
-
         def handleAttack(self,player):
                 player.performAttack()  
                 for p in self.players.itervalues():
@@ -212,7 +211,6 @@ class Environment(): #in an MVC system , this would be a controller
                 '''controls the environment by initiating the looping calls'''
                 self.TrueTimeLeft=Environment.GAME_DURATION
                 self.TimeLeft = int(self.TrueTimeLeft)
-                pickle.dump( [], open( "ServerOut.p", "wb" ) )
                 self.view.start('Server')
                 self._renderCall = LoopingCall(self.Update)
                 self._renderCall.start(1.0/Environment.FPS)
@@ -300,7 +298,7 @@ class Environment(): #in an MVC system , this would be a controller
         def Serialize(self):
                 s=''
                 for p in self.players.itervalues():
-                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'&'+str(p.action)+'$'
+                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'$'+str(partialResources.resources )+'&'+str(p.action)+'$'
                 for b in self.buildings.itervalues():
                         s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
         

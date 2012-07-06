@@ -31,7 +31,7 @@ class GameStateTransmitter(RequestHandler):
             
         finally:
             serv_db.close()
-
+            
         self.write(ServerState)
         self.flush()
         self.finish()
