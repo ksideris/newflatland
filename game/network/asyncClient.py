@@ -35,7 +35,7 @@ class HTTPClient(asyncore.dispatcher):
                     message=''    
                 bodyIndex =  string.index(s, "\r\n\r\n") +4
                 message += s[bodyIndex:]        
-            print message           
+            #print message           
 		    
     def writable(self):
         return (len(self.buffer) > 0)

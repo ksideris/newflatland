@@ -41,7 +41,8 @@ class PlayerScan:
 
         if self.startTime == 0:
             return 0
-
+        if time.time() - self.startTime <0:
+            self.startTime=time.time()
         dt = (time.time() - self.startTime)*1000.0
         
         if(dt<1000):
@@ -80,14 +81,6 @@ class Player():
                 self.NoPartial = 3 
                 self.action = 0
                 self.scanning = PlayerScan()
-                #self.fullState =''
-                #self.partialState =''
-                
-        def serialize(self):
-                pass
-                #self.fullState = json.dumps({'id':self.player_id,'tm':self.team,'pos':str(self.position),'sd':self.sides,'rc':self.resources,'pr':self.partialResources,'ac':self.action})
-                #self.partialState = json.dumps({'id':self.player_id,'pos':str(self.position),'sd':self.sides,'rc':self.resources,'pr':self.partialResources,'ac':self.action})
-                #print self.State,len(self.State)
                 
         def getScanRadius(self):
                 return self.scanning.radius()
