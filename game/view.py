@@ -90,7 +90,8 @@ class AnimatedActions():
                 self.animationLastFired = tick
                 self.animationCounter = 0 
                 self.animationSize = 6 
-            
+                self.player.scanRadius = 0
+                
         if(animtype == AnimatedActions.PLAYER_ATTACK): 
                 pygame.mixer.Channel(1).play(getSound("attack"))
                 self.animation.append("Attack")

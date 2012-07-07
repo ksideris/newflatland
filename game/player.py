@@ -31,7 +31,9 @@ class Player():
                 self.player_id=-1
                 self.team=0
                 #self.animations = AnimatedActions()
-                self.position = Vector2D(random.randint(1, 10), random.randint(1, 10)) 
+                self.position = Vector2D(0,0)
+                self.targetPosition = Vector2D(0,0)
+                self.speed = 10
                 self.sides = 3
                 self.resources = 0
                 self.partialResources = 0 
@@ -43,7 +45,17 @@ class Player():
                 
         def getScanRadius(self):
                 return self.scanRadius
-
+        
+        def updatePosition(self,dt):
+                direction = self.targetPosition-self.position
+                if(direction.length > 0.5):
+                        if(direction.x==0):
+                                self.position += (dt * self.speed) * Vector2D(0,1 + -2*(direction.y<0))
+                        elif(direction.y==0):
+                                self.position += (dt * self.speed) * Vector2D(1 + -2*(direction.x<0),0)
+                        else:
+                                self.position += (dt * self.speed) * direction.norm()
+                    
         def hit(self,tick):
                 if self.resources:
                     self.resources -= 1

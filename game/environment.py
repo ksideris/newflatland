@@ -48,7 +48,6 @@ class Environment(): #in an MVC system , this would be a controller
                 self.actions =None
                 self.IsServer = True
                 self.ResourcePool = ResourcePool()
-                
 
         #Helper Functions
         def createPlayer(self, player_id,team):
@@ -97,13 +96,16 @@ class Environment(): #in an MVC system , this would be a controller
                             self.TrueTimeLeft =0
 
 
-
+        def updatePositions(self):
+                for playerId in self.players:
+                     self.players[playerId].updatePosition( 1.0/Environment.FPS)
 
         def Update(self):
                 
                 startTime = time.time()
                 self.updateTime()
                 self.scores =self.calculateScores()
+                self.updatePositions()
                 if(self.actions<>None):
                         self.processNewState()
                 self.writeStateToServer()
@@ -116,6 +118,7 @@ class Environment(): #in an MVC system , this would be a controller
                                 if event.key==pygame.K_s:
                                         self.StartGame()
                 #print time.time()-startTime
+                
         def processNewState(self):
             
                 for action in self.actions:
@@ -124,7 +127,7 @@ class Environment(): #in an MVC system , this would be a controller
                         if(self.players[playerId].player_id)==int(action[0]):
                             self.players[playerId].action=int(action[2])
                             pos = action[3].split(',')
-                            self.players[playerId].position = Vector2D(float(pos[0]),float(pos[1]))
+                            self.players[playerId].targetPosition = Vector2D(float(pos[0]),float(pos[1]))
                             found =True
                             break
 
