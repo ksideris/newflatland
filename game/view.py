@@ -215,7 +215,8 @@ class Window(object):
         self.images = Images(FilePath("data").child("img2"))
         self.images.load()
         self.center = Vector2D((0,0))
-        self.animations = {}
+        self.playerAnimations = {}
+        self.buildingAnimations = {}
 
     def paint(self,tick): # Draw Background
         """
@@ -277,19 +278,30 @@ class Window(object):
             
             self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p),tick)
             
+    def updateBuildingAnimations(self,building,tick):
+        
+        if not str(building.building_id) in self.buildingAnimations:
+            self.buildingAnimations[str(building.building_id)] = AnimatedActions(building)
+
+        building_animatedActions =self.buildingAnimations[str(building.building_id)]
+            
+        for anim in building.animations:
+            building_animatedActions.addAnimation(anim[0],anim[1],tick)
+        building.animations = []    
+        return     building_animatedActions
+            
+    
     def updatePlayerAnimations(self,player,tick):
         
-        if not str(player.player_id) in self.animations:
-            self.animations[str(player.player_id)] = AnimatedActions(player)
+        if not str(player.player_id) in self.playerAnimations:
+            self.playerAnimations[str(player.player_id)] = AnimatedActions(player)
 
-        player_animatedActions =self.animations[str(player.player_id)]
+        player_animatedActions =self.playerAnimations[str(player.player_id)]
             
         for anim in player.animations:
             player_animatedActions.addAnimation(anim[0],anim[1],tick)
         player.animations = []    
         return     player_animatedActions
-            
-   
             
     def drawPlayer(self,player,position,isVisible,tick):
 
@@ -311,7 +323,8 @@ class Window(object):
     def drawBuilding(self,building,position,isVisible,tick):
         
         #building.animations.drawAnimation(self, position,tick)
-
+        
+        self.updateBuildingAnimations(building,tick).drawAnimation(self,position,tick)
         if not (building.sides and building.resources):
                 return 0
 

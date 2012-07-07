@@ -30,7 +30,7 @@ class Player():
         def __init__(self):
                 self.player_id=-1
                 self.team=0
-                #self.animations = AnimatedActions()
+
                 self.position = Vector2D(0,0)
                 self.targetPosition = Vector2D(0,0)
                 self.speed = 10
@@ -39,13 +39,13 @@ class Player():
                 self.partialResources = 0 
                 self.NoPartial = 3 
                 self.action = 0
-                #self.scanning = PlayerScan()
                 self.animations = [] 
                 self.scanRadius = 0
                 
         def getScanRadius(self):
                 return self.scanRadius
-        
+        def getPosition(self):
+                return self.targetPosition 
         def updatePosition(self,dt):
                 direction = self.targetPosition-self.position
                 if(direction.length > 0.5):
@@ -114,6 +114,7 @@ class Building():
         SENTRY_RANGE = 2.75
 
         def __init__(self):
+                self.building_id = 0
                 self.sides = 1
                 self.resources = 1
                 self.team=1
@@ -128,7 +129,7 @@ class Building():
             
         def explode(self,player,tick):
                 
-                #self.animations.append((AnimatedActions.BUILDING_EXPLODED,False,tick))
+                self.animations.append((AnimatedActions.BUILDING_EXPLODED,False,tick))
                 ##self.animations.addAnimation(AnimatedActions.BUILDING_EXPLODED,False,tick)
 
                 player.sides = 0
@@ -136,6 +137,8 @@ class Building():
                 self.sides=0            
                 
 
+        def getPosition(self):
+                return self.position 
 
     
         def build(self,player,tick):
@@ -161,7 +164,7 @@ class Building():
 
                         if buildingLeveledUp:
                                 self.size = self.sides
-                                #self.animations.append((AnimatedActions.BUILDING_UPGRADED,True,tick))
+                                self.animations.append((AnimatedActions.BUILDING_UPGRADED,True,tick))
                                 ##self.animations.addAnimation(AnimatedActions.BUILDING_UPGRADED,True,tick)
                 
 
@@ -178,7 +181,7 @@ class Building():
 
         def hit(self,tick):
                 ##self.animations.addAnimation(AnimatedActions.BUILDING_ATTACKED,False,tick)
-                #self.animations.append((AnimatedActions.BUILDING_ATTACKED,False,tick))
+                self.animations.append((AnimatedActions.BUILDING_ATTACKED,False,tick))
                 if not (self.sides and self.resources):
                     return 0
                 elif self.resources:
@@ -195,7 +198,9 @@ class ResourcePool():
                 self.size = 6.5
                 self.position =Vector2D(0,0)
 
-    
+        
+        def getPosition(self):
+                return self.position 
         def draw(self, view, position):
                 view.images.images["resource_pool_zone"].draw(view.screen, position)
                 view.images.images["resource_pool"].draw(view.screen, position)

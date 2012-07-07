@@ -26,6 +26,7 @@ CLIENTDATA= 'ClientState.db'
 class Environment(): #in an MVC system , this would be a controller
         ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
         NEXT_PLAYER_ID=1
+        NEXT_BUILDING_ID=1
         FPS=30
         ATTACK_DISTANCE =3
         BUILDING_DISTANCE =6
@@ -70,6 +71,8 @@ class Environment(): #in an MVC system , this would be a controller
                 building.team = team
                 building.position =pos
                 bid = id(building)
+                building.building_id = Environment.NEXT_BUILDING_ID
+                Environment.NEXT_BUILDING_ID = Environment.NEXT_BUILDING_ID + 1
                 self.buildings[bid] = building
                 
         
@@ -156,27 +159,27 @@ class Environment(): #in an MVC system , this would be a controller
                                 self.handleIdle(player)
                                               
                         for b in self.buildings.itervalues():
-                             if   (b.position - player.position).length < b.size and b.isTrap() and b.team<>player.team:         
+                             if   (b.getPosition() - player.getPosition()).length < b.size and b.isTrap() and b.team<>player.team:         
                                         b.explode(player,self.Tick)   
         
 
         def handleAttack(self,player):
                 player.performAttack(self.Tick)  
                 for p in self.players.itervalues():
-                        if (p.team != player.team) and (p.position - player.position).length < Environment.ATTACK_DISTANCE:
+                        if (p.team != player.team) and (p.getPosition() - player.getPosition()).length < Environment.ATTACK_DISTANCE:
                                 p.hit(self.Tick)
                 for b in self.buildings.itervalues():
-                        if (b.team != player.team) and (b.position - player.position).length < Environment.ATTACK_DISTANCE:
+                        if (b.team != player.team) and (b.getPosition() - player.getPosition()).length < Environment.ATTACK_DISTANCE:
                                 b.hit(self.Tick)
 
         def handleBuild(self,player):
                 ACTION = "BUILD"
-                if((self.ResourcePool.position-player.position).length< self.ResourcePool.size):
+                if((self.ResourcePool.getPosition()-player.getPosition()).length< self.ResourcePool.size):
                         ACTION ="MINE"
                 else:
                         for b in self.buildings.itervalues():
                                 
-                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position).length <b.size):
+                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.getPosition()- player.getPosition()).length <b.size):
                                         ACTION ="MINE"
                                         break      
                 if( ACTION =="MINE"):
@@ -187,11 +190,11 @@ class Environment(): #in an MVC system , this would be a controller
                         if(player.resources>0):
                                 BUILDING =None
                                 for b in self.buildings.itervalues():
-                                        if   (b.position - player.position).length < b.size:
+                                        if   (b.getPosition() - player.getPosition()).length < b.size:
                                                 BUILDING =b
                                                 break
                                 if BUILDING ==None :
-                                        self.createBuilding(  player.team, player.position)                       
+                                        self.createBuilding(  player.team, player.getPosition())                       
                                         player.resources-=1 
 
                                 elif BUILDING.team ==player.team:
@@ -200,11 +203,11 @@ class Environment(): #in an MVC system , this would be a controller
         
         def handleUpgrade(self,player):
                 allowedUpgradeLoc = False
-                if((self.ResourcePool.position-player.position).length< self.ResourcePool.size):
+                if((self.ResourcePool.getPosition()-player.getPosition()).length< self.ResourcePool.size):
                         allowedUpgradeLoc=True
                 else:
                         for b in self.buildings.itervalues():
-                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.position- player.position).length <b.size): 
+                                if(b.team == player.team and b.isPolyFactory() and b.resources == 5 and (b.getPosition()- player.getPosition()).length <b.size): 
                                         allowedUpgradeLoc=True
                                         break
                 if(allowedUpgradeLoc):
@@ -301,7 +304,7 @@ class Environment(): #in an MVC system , this would be a controller
         def dSerialize(self):
                 s=''
                 for p in self.players.itervalues():
-                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'$'+str(p.partialResources )+'&'+str(p.animations)+'$'
+                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.getPosition())+'&'+str(p.sides)+'&'+str(p.resources )+'$'+str(p.partialResources )+'&'+str(p.animations)+'$'
                         
                 s+='$'+pickle.dumps(self.buildings)+'$'+\
                 pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)

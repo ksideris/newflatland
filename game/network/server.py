@@ -26,15 +26,16 @@ class GameStateTransmitter(RequestHandler):
         try:
 
             ServerState = serv_db['data']['string']             
-
+            self.write(ServerState)
+            self.flush()
+            self.finish()
+        except:
+            pass
             
         finally:
             serv_db.close()
             
-        self.write(ServerState)
-        self.flush()
-        self.finish()
-
+        
         
         ClientState = args['id'][0]+'$'+args['team'][0]+'$'+args['action'][0]+'$'+args['pos'][0]+'$'+args['time'][0]
         
