@@ -80,7 +80,8 @@ class Player():
                          self.animations.append((AnimatedActions.PLAYER_SCAN,True,tick))
         
         def performAttack(self,tick):
-                self.animations.append((AnimatedActions.PLAYER_ATTACK,True,tick))
+                if( self.sides >= 3):
+                    self.animations.append((AnimatedActions.PLAYER_ATTACK,True,tick))
                 #self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK,False,tick)
 
         def performBuild(self,tick):

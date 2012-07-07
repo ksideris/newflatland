@@ -171,7 +171,7 @@ class AnimatedActions():
         if(len(self.animation)==0):
                 return
         if(self.animation[0]=="Scan"):
-            self.PlaySound(self.animation[0])
+            #self.PlaySound(self.animation[0])
             dt = (tick - self.animationLastFired)*1000.0
             radius=0
             if(dt<1000):
@@ -196,7 +196,7 @@ class AnimatedActions():
                     
                     return
             else:
-                    self.PlaySound(self.animation[0])
+                    #self.PlaySound(self.animation[0])
                     anim = view.images.images[self.animation[0]]
                     image = anim.getImage(self.animationCounter)
                     image.draw(view.screen, position)
