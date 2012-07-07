@@ -91,7 +91,9 @@ class PlayerController(object):
         if directionX != 0 or directionY != 0:
             self.position += (dt * self.speed) * direction.norm()
         self.view.environment.Position = self.position
-
+        
+        self.view.environment.makeRequest(0,self.position)
+        
         self.view.setCenter(self.position)
 
 
@@ -114,7 +116,9 @@ class PlayerController(object):
             self.view.environment.action = 4
         else:
             self._currentAction = None
-
+            self.view.environment.action = 0
+        self.view.environment.makeRequest(self.view.environment.action,self.position)
+        
 
     def _finishedAction(self):
         '''if self._currentAction == ATTACK:

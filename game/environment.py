@@ -18,7 +18,10 @@ from twisted.internet.task import LoopingCall
 import time,random
 import pickle,sys #TODO change to cPickle for speed
 
-import shelve
+import shelve,os
+
+SERVERDATA= 'ServerState.db'
+CLIENTDATA= 'ClientState.db'
 
 class Environment(): #in an MVC system , this would be a controller
         ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
@@ -216,10 +219,11 @@ class Environment(): #in an MVC system , this would be a controller
                 self.TrueTimeLeft=Environment.GAME_DURATION
                 self.TimeLeft = int(self.TrueTimeLeft)
                 self.view.start('Server')
+                if os.path.exists(SERVERDATA):
+                        os.remove(SERVERDATA)
                 self._renderCall = LoopingCall(self.Update)
                 self._renderCall.start(1.0/Environment.FPS)
-                #self._writeCall = LoopingCall( self.writeStateToServer )
-                #self._writeCall.start(1.0/Environment.FPS) 
+
                 self._readCall = LoopingCall( self.readStateFromServer)
                 self._readCall.start(1.0/Environment.FPS) 
                 
@@ -250,7 +254,7 @@ class Environment(): #in an MVC system , this would be a controller
         def writeStateToServer(self):
                 string =self.cSerialize()
                 
-                serv_db = shelve.open('ServerState.db')
+                serv_db = shelve.open(SERVERDATA)
                 try:
                         serv_db['data']= { 'time': str(time.time()), 'string': string }                      
                 finally:
@@ -258,7 +262,7 @@ class Environment(): #in an MVC system , this would be a controller
                 
         def readStateFromServer(self):
 
-                client_db = shelve.open('ClientState.db')
+                client_db = shelve.open(CLIENTDATA)
                 try:
                         self.actions =[]
                         for key in client_db:

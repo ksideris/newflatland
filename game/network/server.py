@@ -7,7 +7,7 @@ from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application
 import pickle,time,sys #TODO change to cPickle for speed
-import shelve
+import shelve,os
 
 SERVERDATA= 'ServerState.db'
 CLIENTDATA= 'ClientState.db'
@@ -21,7 +21,6 @@ class GameStateTransmitter(RequestHandler):
     def get(self):
         
         args= self.request.arguments
-        
         serv_db = shelve.open(SERVERDATA)
 
         try:
@@ -38,7 +37,8 @@ class GameStateTransmitter(RequestHandler):
 
         
         ClientState = args['id'][0]+'$'+args['team'][0]+'$'+args['action'][0]+'$'+args['pos'][0]+'$'+args['time'][0]
-
+        
+       
         client_db = shelve.open(CLIENTDATA)
         try:
             client_db[args['id'][0]] = {'time':time.time(),'string':ClientState}
@@ -47,13 +47,11 @@ class GameStateTransmitter(RequestHandler):
             
         
 
-       
-	
-
 class Server():
 
 	def start(self,server_address,server_port):
-	
+                if os.path.exists(CLIENTDATA):
+                    os.remove(CLIENTDATA)
 	
 		app = Application([('/', GameStateTransmitter)])
 		app.listen(server_port, address=server_address)

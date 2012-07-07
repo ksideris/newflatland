@@ -33,7 +33,7 @@ class Player():
                 #self.animations = AnimatedActions()
                 self.position = Vector2D(random.randint(1, 10), random.randint(1, 10)) 
                 self.sides = 3
-                self.resources = 2
+                self.resources = 0
                 self.partialResources = 0 
                 self.NoPartial = 3 
                 self.action = 0
@@ -85,7 +85,7 @@ class Player():
                 #self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK,False,tick)
 
         def performBuild(self,tick):
-                self.animations.append((AnimatedActions.PLAYER_BUILD,False,tick))
+                self.animations.append((AnimatedActions.PLAYER_BUILD,True,tick))
                 #self.animations.addAnimation(AnimatedActions.PLAYER_BUILD,False,tick)
                         
                 

@@ -22,7 +22,7 @@ from twisted.internet.task import LoopingCall
 import time,random
 import pickle,sys #TODO change to cPickle for speed
 
-import shelve
+import shelve,os
 CLIENTLOCALDATA = 'ClientLocalData.db'
 
 class Environment(): #in an MVC system , this would be a controller
@@ -42,8 +42,12 @@ class Environment(): #in an MVC system , this would be a controller
 		self.view =None
 		self.GameOver =False
 		self.playerID =player_id
+		
 		self.action = 0
-		self.lastAction = 0# time at which we activated the last action. Used to regulate action activations
+		self.attemptedAction = 0
+		self.lastAction = 0
+		self.ActionTimeout = 1
+		
 		self.team =team
 		self.otherTeam = 2 if self.team==1 else  1 
 		self.scores =[0,0]
@@ -57,7 +61,7 @@ class Environment(): #in an MVC system , this would be a controller
                 self.lastUpdate = 0
 
     def readGestures(self):
-        pass#self.action = 1 #attack
+        pass
 
     def updateTime(self):
 		self.Tick+=0.03
@@ -69,9 +73,10 @@ class Environment(): #in an MVC system , this would be a controller
 		self.updateTime()
 		self.readGestures()
 		self.view.paint(self.Tick )
-    def makeRequest(self):
+		
+    def makeRequest(self,action,Position):
         #print self.action
-        self.client.MakeRequest(self.playerID,self.team,self.action,self.Position)
+        self.client.MakeRequest(self.playerID,self.team,action,Position)
         
         self.action = 0
 
@@ -81,10 +86,13 @@ class Environment(): #in an MVC system , this would be a controller
 		self.lastUpdate =time.time()
 		self.view.start('client-'+str(self.playerID))
 		self.client.start(self.serverIP,self.serverPort)
+                
+		os.remove(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1])
+		
 		self._renderCall = LoopingCall(self.Update) 
-		self._requestCall = LoopingCall(self.makeRequest) 
+		#self._requestCall = LoopingCall(self.makeRequest) 
 		self._renderCall.start(1.0/Environment.FPS)	
-		self._requestCall.start(1.0/Environment.FPS)	
+		#self._requestCall.start(1.0/Environment.FPS)	
 
 
 	#FUNCTIONS FOR NETWORKING
@@ -92,32 +100,34 @@ class Environment(): #in an MVC system , this would be a controller
     def deSerialize(self):
         state=None
         localdb = shelve.open(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1])
-        try:
-
-            state = localdb['data']['string']             
-
-        finally:
-            localdb.close()
+        if localdb.has_key('data'):
                 
-        if(state<>None):
-            t = state.split('$')
-            players =  pickle.loads(t[0]) #update players
-            self.players.clear()
-            for p in players.itervalues():                    
-                self.players[id(p)] = p
-                if p.player_id == self.playerID:
-                            p.position = Vector2D(self.Position)
-                            p.action = self.action
+            try:
 
-            buildings =  pickle.loads(t[1]) #update buildings
-            self.buildings.clear()
-            for b in buildings.itervalues():                    
-                self.buildings[id(b)] = b
+                state = localdb['data']['string']             
 
-            self.ResourcePool = pickle.loads(t[2])
-            self.scores =pickle.loads(t[3])
-            self.TimeLeft =int(t[4])
-            #if(abs(self.Tick-float(t[5]) ) > 1):
-            #    
-            #self.Tick =float(t[5])
+            finally:
+                localdb.close()
+                    
+            if(state<>None):
+                t = state.split('$')
+                players =  pickle.loads(t[0]) #update players
+                self.players.clear()
+                for p in players.itervalues():                    
+                    self.players[id(p)] = p
+                    if p.player_id == self.playerID:
+                                p.position = Vector2D(self.Position)
+                                p.action = self.action
+
+                buildings =  pickle.loads(t[1]) #update buildings
+                self.buildings.clear()
+                for b in buildings.itervalues():                    
+                    self.buildings[id(b)] = b
+
+                self.ResourcePool = pickle.loads(t[2])
+                self.scores =pickle.loads(t[3])
+                self.TimeLeft =int(t[4])
+                #if(abs(self.Tick-float(t[5]) ) > 1):
+                #    
+                #self.Tick =float(t[5])
  
