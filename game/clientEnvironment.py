@@ -52,24 +52,23 @@ class Environment(): #in an MVC system , this would be a controller
 		self.client = AsyncClient()
 		self.serverIP =serverIP
 		self.serverPort = serverPort
-
+                self.Tick = 0
                 self.Position = (0,0)
-    
+                self.lastUpdate = 0
 
     def readGestures(self):
         pass#self.action = 1 #attack
 
     def updateTime(self):
-		
-		if(	self.TimeLeft<=0):
+		self.Tick+=0.03
+		if( self.TimeLeft<=0):
 		    self.GameOver =True
-		       
+            
     def Update(self):
 		self.deSerialize()
 		self.updateTime()
 		self.readGestures()
-		self.view.paint()
-	
+		self.view.paint(self.Tick )
     def makeRequest(self):
         #print self.action
         self.client.MakeRequest(self.playerID,self.team,self.action,self.Position)
@@ -79,7 +78,7 @@ class Environment(): #in an MVC system , this would be a controller
     def start(self):
 		'''controls the environment by initiating the looping calls'''
 
-		
+		self.lastUpdate =time.time()
 		self.view.start('client-'+str(self.playerID))
 		self.client.start(self.serverIP,self.serverPort)
 		self._renderCall = LoopingCall(self.Update) 
@@ -118,5 +117,7 @@ class Environment(): #in an MVC system , this would be a controller
             self.ResourcePool = pickle.loads(t[2])
             self.scores =pickle.loads(t[3])
             self.TimeLeft =int(t[4])
-         
+            #if(abs(self.Tick-float(t[5]) ) > 1):
+            #    
+            #self.Tick =float(t[5])
  

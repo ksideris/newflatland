@@ -33,7 +33,8 @@ class Environment(): #in an MVC system , this would be a controller
                 self.players    = {}
                 self.buildings  = {}
                 self.TimeLeft = 0 
-                self.TrueTimeLeft = 0         
+                self.TrueTimeLeft = 0  
+                self.Tick = 0         
                 self.scores =[0,0]     
                 self.GameOver =False
                 self.GameStarted =False
@@ -74,6 +75,7 @@ class Environment(): #in an MVC system , this would be a controller
 
         
         def StartGame(self):
+                self.Tick=0
                 self.GameStarted=True
                 for playerId in self.players:
                      self.players[playerId].sides=3
@@ -83,6 +85,7 @@ class Environment(): #in an MVC system , this would be a controller
 
                 
         def updateTime(self):
+                self.Tick += 1.0/Environment.FPS
                 if(self.GameStarted):
                         self.TrueTimeLeft-=1.0/Environment.FPS
                         self.TimeLeft = int(self.TrueTimeLeft)  
@@ -100,7 +103,8 @@ class Environment(): #in an MVC system , this would be a controller
                 self.scores =self.calculateScores()
                 if(self.actions<>None):
                         self.processNewState()
-                self.view.paint()
+                self.writeStateToServer()
+                self.view.paint(self.Tick)
                 for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                                 pygame.quit()
@@ -108,7 +112,7 @@ class Environment(): #in an MVC system , this would be a controller
                         if event.type == pygame.KEYDOWN:
                                 if event.key==pygame.K_s:
                                         self.StartGame()
-                print time.time()-startTime
+                #print time.time()-startTime
         def processNewState(self):
             
                 for action in self.actions:
@@ -147,17 +151,17 @@ class Environment(): #in an MVC system , this would be a controller
                                               
                         for b in self.buildings.itervalues():
                              if   (b.position - player.position).length < b.size and b.isTrap() and b.team<>player.team:         
-                                        b.explode(player)   
+                                        b.explode(player,self.Tick)   
         
 
         def handleAttack(self,player):
-                player.performAttack()  
+                player.performAttack(self.Tick)  
                 for p in self.players.itervalues():
                         if (p.team != player.team) and (p.position - player.position).length < Environment.ATTACK_DISTANCE:
-                                p.hit()
+                                p.hit(self.Tick)
                 for b in self.buildings.itervalues():
                         if (b.team != player.team) and (b.position - player.position).length < Environment.ATTACK_DISTANCE:
-                                b.hit()
+                                b.hit(self.Tick)
 
         def handleBuild(self,player):
                 ACTION = "BUILD"
@@ -170,8 +174,8 @@ class Environment(): #in an MVC system , this would be a controller
                                         ACTION ="MINE"
                                         break      
                 if( ACTION =="MINE"):
-                        player.performBuild()  
-                        player.mine()
+                        player.performBuild(self.Tick)  
+                        player.mine(self.Tick)
                                          
                 else:
                         if(player.resources>0):
@@ -185,8 +189,8 @@ class Environment(): #in an MVC system , this would be a controller
                                         player.resources-=1 
 
                                 elif BUILDING.team ==player.team:
-                                        player.performBuild() 
-                                        BUILDING.build(player) 
+                                        player.performBuild(self.Tick) 
+                                        BUILDING.build(player,self.Tick) 
         
         def handleUpgrade(self,player):
                 allowedUpgradeLoc = False
@@ -198,10 +202,10 @@ class Environment(): #in an MVC system , this would be a controller
                                         allowedUpgradeLoc=True
                                         break
                 if(allowedUpgradeLoc):
-                       player.upgrade() 
+                       player.upgrade(self.Tick) 
 
         def handleScan(self,player):
-             player.scan()    
+             player.scan(self.Tick)    
 
         def handleIdle(self,player):
 
@@ -214,8 +218,8 @@ class Environment(): #in an MVC system , this would be a controller
                 self.view.start('Server')
                 self._renderCall = LoopingCall(self.Update)
                 self._renderCall.start(1.0/Environment.FPS)
-                self._writeCall = LoopingCall( self.writeStateToServer )
-                self._writeCall.start(1.0/Environment.FPS) 
+                #self._writeCall = LoopingCall( self.writeStateToServer )
+                #self._writeCall.start(1.0/Environment.FPS) 
                 self._readCall = LoopingCall( self.readStateFromServer)
                 self._readCall.start(1.0/Environment.FPS) 
                 
@@ -281,11 +285,22 @@ class Environment(): #in an MVC system , this would be a controller
         def cSerialize(self):
 
                 s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
-                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)
+                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)
+                
                 #print len(s),s         
                 return s
 
         
+        def dSerialize(self):
+                s=''
+                for p in self.players.itervalues():
+                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'$'+str(p.partialResources )+'&'+str(p.animations)+'$'
+                        
+                s+='$'+pickle.dumps(self.buildings)+'$'+\
+                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)
+                
+                #print len(s),s         
+                return s
 
         def _serialize(self):
                 s =''

@@ -30,7 +30,7 @@ def _initSounds():
     sounds["trigger trap"] = pygame.mixer.Sound("data/sfx/alex_sfx/Trigger Trap.wav")
     sounds["explosion"] = pygame.mixer.Sound("data/sfx/alex_sfx/Attack Hit.wav")
 
-    sounds["attack"] = pygame.mixer.Sound("data/sfx/alex_sfx/attack.wav")
+    sounds["attack"] = pygame.mixer.Sound("data/sfx/alex_sfx/Attacked.wav")
     sounds["poly armor full"] = pygame.mixer.Sound("data/sfx/alex_sfx/Points Full.wav")
     sounds["player upgrade"] = pygame.mixer.Sound("data/sfx/alex_sfx/You upgraded.wav")
 
@@ -73,27 +73,30 @@ class AnimatedActions():
     BUILDING_ATTACKED   = 9
     BUILDING_EXPLODED   = 10
 
-    def __init__(self):  
+    def __init__(self,player):  
         #animation related variables
         self.animationCounter = 0 
         self.animationFps =0
         self.animationSize = 0 
         self.animation = [] 
-        self.animationLastFired = 0 
-        
+        self.animationLastFired = 0
+        self.player = player
 
-    def addAnimation(self,animtype,clean):
+    def addAnimation(self,animtype,clean,tick):
         
         if(len(self.animation)==0 or clean):
                 self.animation = []
                 self.animationFps = 30                
-                self.animationLastFired =time.time()
+                self.animationLastFired = tick
                 self.animationCounter = 0 
                 self.animationSize = 6 
             
         if(animtype == AnimatedActions.PLAYER_ATTACK): 
                 pygame.mixer.Channel(1).play(getSound("attack"))
                 self.animation.append("Attack")
+        elif(animtype == AnimatedActions.PLAYER_SCAN): 
+                pygame.mixer.Channel(1).play(getSound("scanning"))
+                self.animation.append("Scan")
         elif(animtype == AnimatedActions.PLAYER_BUILD): 
                 if not pygame.mixer.Channel(2).get_busy():
                             pygame.mixer.Channel(2).play(getSound("mining"))
@@ -129,22 +132,79 @@ class AnimatedActions():
             if not pygame.mixer.Channel(2).get_busy():
                 pygame.mixer.Channel(2).stop()
                 self.animation.append("building upgraded")
-    
-    def drawAnimation(self,view, position):
+
+    def PlaySound(self,animtype):
+        if(animtype == AnimatedActions.PLAYER_ATTACK): 
+                pygame.mixer.Channel(1).play(getSound("attack"))
+        elif(animtype == AnimatedActions.PLAYER_SCAN): 
+                pygame.mixer.Channel(3).play(getSound("scanning"),-1)
+                pygame.mixer.Channel(3).fadeout(4000)
+        elif(animtype == AnimatedActions.PLAYER_BUILD): 
+                pygame.mixer.Channel(2).play(getSound("mining"))
+        elif(animtype == AnimatedActions.PLAYER_UPGRADE):
+            if not pygame.mixer.Channel(7).get_busy():
+                pygame.mixer.Channel(7).play(getSound("player upgrade")) 
+                pygame.mixer.Channel(2).stop()
+        elif(animtype == AnimatedActions.PLAYER_DOWNGRADE):
+            if not pygame.mixer.Channel(4).get_busy():
+                pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
+        elif(animtype == AnimatedActions.PLAYER_LOSE_RESOURCE): 
+            if not pygame.mixer.Channel(4).get_busy():
+                pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
+        elif(animtype == AnimatedActions.PLAYER_GAIN_RESOURCE): 
+            if not pygame.mixer.Channel(4).get_busy():
+                pygame.mixer.Channel(4).play(getSound("gain poly armor")) 
+        
+        elif(animtype == AnimatedActions.BUILDING_EXPLODED):
+            if not pygame.mixer.Channel(5).get_busy():
+                pygame.mixer.Channel(5).play(getSound("trigger trap"))
+            if not pygame.mixer.Channel(6).get_busy():
+                pygame.mixer.Channel(6).play(getSound("explosion")) 
+        elif(animtype == AnimatedActions.BUILDING_UPGRADED): 
+            if not pygame.mixer.Channel(7).get_busy():
+                pygame.mixer.Channel(7).play(getSound("finish building", 3), 0)
+            if not pygame.mixer.Channel(2).get_busy():
+                pygame.mixer.Channel(2).stop()
+
+                
+    def drawAnimation(self,view, position ,tick):
         if(len(self.animation)==0):
                 return
-        if(self.animationCounter>= self.animationSize):
-                self.animationCounter = 0 
-                self.animationLastFired = time.time() 
-                self.animation = self.animation[1:] 
-                return
-        else:
-                anim = view.images.images[self.animation[0]]
-                image = anim.getImage(self.animationCounter)
-                image.draw(view.screen, position)
-                if(time.time()-  self.animationLastFired>1.0/self.animationFps ):
-                    self.animationCounter+=1       
-
+        if(self.animation[0]=="Scan"):
+            self.PlaySound(self.animation[0])
+            dt = (tick - self.animationLastFired)*1000.0
+            radius=0
+            if(dt<1000):
+                radius = 2*(min(1, (dt / 1000.0)  * .9) + 0.1)
+                
+            else:
+                radius = 2* (1 - ((dt-1000.0) / 5000.0))
+                if(radius<0):
+                    radius=0
+                    self.animationCounter = 0 
+                    self.animationLastFired = tick 
+                    self.animation = self.animation[1:] 
+            self.player.scanRadius = radius             
+            view.images.images["PlayerScan"].drawScaled(view.screen, position, radius)
+           
+        else:    
+        
+            if(self.animationCounter>= self.animationSize):
+                    self.animationCounter = 0 
+                    self.animationLastFired = tick 
+                    self.animation = self.animation[1:]
+                    
+                    return
+            else:
+                    self.PlaySound(self.animation[0])
+                    anim = view.images.images[self.animation[0]]
+                    image = anim.getImage(self.animationCounter)
+                    image.draw(view.screen, position)
+                    if(tick-  self.animationLastFired>1.0/self.animationFps ):
+                        self.animationCounter+=1       
+    
+        
+        
 
 class Window(object):
     def __init__(self, environment):
@@ -154,9 +214,9 @@ class Window(object):
         self.images = Images(FilePath("data").child("img2"))
         self.images.load()
         self.center = Vector2D((0,0))
+        self.animations = {}
 
-
-    def paint(self): # Draw Background
+    def paint(self,tick): # Draw Background
         """
         Call C{paint} on all views which have been directly added to
         this Window.
@@ -177,11 +237,11 @@ class Window(object):
                 j += bgHeight
             x += bgWidth
 
-        self.drawEnvironment()
+        self.drawEnvironment(tick)
         self.drawHUD()
         
         pygame.display.flip()
-        pygame.time.Clock().tick(300)
+        
     def isVisible(self, entity):
         if not self.environment.team:
             return True
@@ -203,41 +263,53 @@ class Window(object):
 
     
 
-    def drawEnvironment(self):
+    def drawEnvironment(self,tick):
         '''Draw the state of the environment. This is called by view after drawing the background. 
            This function draws the timer and calls the drawing functions of the players/buildings/resource pool'''
         if(self.environment.ResourcePool<>None):
             self.environment.ResourcePool.draw(self,self.screenCoord(Vector2D(0,0)))
 
         for b in self.environment.buildings.itervalues():
-                        self.drawBuilding(b,self.screenCoord(b.position),self.isVisible(b))
+                        self.drawBuilding(b,self.screenCoord(b.position),self.isVisible(b),tick)
             
-        for p in self.environment.players.itervalues(): 
-            self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p))
+        for p in self.environment.players.itervalues():
             
-    def drawPlayer(self,player,position,isVisible):
+            self.drawPlayer(p,self.screenCoord(p.position),self.isVisible(p),tick)
+            
+    def updatePlayerAnimations(self,player,tick):
+        
+        if not str(player.player_id) in self.animations:
+            self.animations[str(player.player_id)] = AnimatedActions(player)
+
+        player_animatedActions =self.animations[str(player.player_id)]
+            
+        for anim in player.animations:
+            player_animatedActions.addAnimation(anim[0],anim[1],tick)
+        player.animations = []    
+        return     player_animatedActions
+            
+   
+            
+    def drawPlayer(self,player,position,isVisible,tick):
 
         if isVisible:
                 image = self.images.images["Player", player.team, player.sides]
                 image.draw(self.screen, position)
                 
-                player.animations.drawAnimation(self, position)
+                self.updatePlayerAnimations(player,tick).drawAnimation(self,position,tick)
+                    
                 
                 for i in range(0,player.resources):
                         self.images.images["Armor", player.sides, i+1].draw(self.screen, position)
                 
-                if player.scanning.isScanning():
-                        self.images.images["PlayerScan"].drawScaled(self.screen, position, player.getScanRadius())
-                        if not pygame.mixer.Channel(7).get_busy():
-                                pygame.mixer.Channel(7).play(getSound("scanning"))
-                                pygame.mixer.Channel(7).fadeout(4000)
+               
         else:
                 image = self.images.images["Enemy", player.team]
                 image.draw(self.screen, position)
 
-    def drawBuilding(self,building,position,isVisible):
+    def drawBuilding(self,building,position,isVisible,tick):
         
-        building.animations.drawAnimation(self, position)
+        #building.animations.drawAnimation(self, position,tick)
 
         if not (building.sides and building.resources):
                 return 0

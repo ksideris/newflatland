@@ -18,49 +18,6 @@ import random,time
 
 import json
 
-class PlayerScan:
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.startTime = 0
-        self._radius = 0
-        self._isScanning = False
-
-    def start(self):
-        
-        self.startTime = time.time()
-        self._isScanning = True
-
-    def stop(self,radius):
-        self._isScanning = False
-        self._radius = radius-.01
-        self.startTime = time.time()
-
-    def radius(self):
-
-        if self.startTime == 0:
-            return 0
-        if time.time() - self.startTime <0:
-            self.startTime=time.time()
-        dt = (time.time() - self.startTime)*1000.0
-        
-        if(dt<1000):
-                value = 2*(min(1, (dt / 1000.0)  * .9) + 0.1)
-                self._radius=value
-        else:
-                value = self._radius * (1 - ((dt-1000.0) / 5000.0))
-                if(value<0):
-                        value=0
-                        self._isScanning = False
-   
-        return  value
-
-
-
-    def isScanning(self):
-        return self._isScanning
-
 
 class Player():
         IDLE    = 0
@@ -73,53 +30,62 @@ class Player():
         def __init__(self):
                 self.player_id=-1
                 self.team=0
-                self.animations = AnimatedActions()
+                #self.animations = AnimatedActions()
                 self.position = Vector2D(random.randint(1, 10), random.randint(1, 10)) 
                 self.sides = 3
                 self.resources = 2
                 self.partialResources = 0 
                 self.NoPartial = 3 
                 self.action = 0
-                self.scanning = PlayerScan()
+                #self.scanning = PlayerScan()
+                self.animations = [] 
+                self.scanRadius = 0
                 
         def getScanRadius(self):
-                return self.scanning.radius()
+                return self.scanRadius
 
-        def hit(self):
+        def hit(self,tick):
                 if self.resources:
                     self.resources -= 1
-                    self.animations.addAnimation( AnimatedActions.PLAYER_LOSE_RESOURCE,False)
+                    self.animations.append((AnimatedActions.PLAYER_LOSE_RESOURCE,False,tick))
+                    #self.animations.addAnimation( AnimatedActions.PLAYER_LOSE_RESOURCE,False,tick)
                 else:
-                    self.animations.addAnimation( AnimatedActions.PLAYER_DOWNGRADE,False)
+                    self.animations.append((AnimatedActions.PLAYER_DOWNGRADE,False,tick))
+                    #self.animations.addAnimation( AnimatedActions.PLAYER_DOWNGRADE,False,tick)
                     if self.sides>0:
                         self.sides -= 1 
                         if(self.sides>2):
                                 self.resources = self.sides   
-        def mine(self):   
+        def mine(self,tick):   
                 self.partialResources += 1
                 if self.partialResources==self.NoPartial :
                         self.partialResources=0
                         if self.sides < 3:
                                 self.sides += 1
-                                self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True)
+                                self.animations.append((AnimatedActions.PLAYER_UPGRADE,True,tick))
+                                #self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True,tick)
                         elif self.resources < self.sides:
                                 self.resources += 1
-                                self.animations.addAnimation( AnimatedActions.PLAYER_GAIN_RESOURCE,False)
-        def upgrade(self):
+                                self.animations.append((AnimatedActions.PLAYER_GAIN_RESOURCE,True,tick))
+                                #self.animations.addAnimation( AnimatedActions.PLAYER_GAIN_RESOURCE,False,tick)
+        def upgrade(self,tick):
                 if(self.sides >= 3 and self.sides==self.resources and self.sides<6):
-                       self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True)
+                       self.animations.append((AnimatedActions.PLAYER_UPGRADE,True,tick))
+                       #self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True,tick)
                        self.resources=0
                        self.sides+=1 
 
-        def scan(self):
-                if(not self.scanning.isScanning() and self.sides >= 3):
-                        self.scanning.start()
+        def scan(self,tick):
+                if( self.sides >= 3):
+                         self.animations.append((AnimatedActions.PLAYER_SCAN,True,tick))
         
-        def performAttack(self):
-                self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK,False)
+        def performAttack(self,tick):
+                self.animations.append((AnimatedActions.PLAYER_ATTACK,True,tick))
+                #self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK,False,tick)
 
-        def performBuild(self):
-                self.animations.addAnimation(AnimatedActions.PLAYER_BUILD,False)
+        def performBuild(self,tick):
+                self.animations.append((AnimatedActions.PLAYER_BUILD,False,tick))
+                #self.animations.addAnimation(AnimatedActions.PLAYER_BUILD,False,tick)
                         
                 
             
@@ -143,12 +109,14 @@ class Building():
                 self.position =-1
                 self.partialResources = 0 
                 self.NoPartial = 3 
-                self.animations = AnimatedActions()
+                #self.animations = AnimatedActions()
+                self.animations = [] 
 
             
-        def explode(self,player):
+        def explode(self,player,tick):
                 
-                self.animations.addAnimation(AnimatedActions.BUILDING_EXPLODED,False)
+                #self.animations.append((AnimatedActions.BUILDING_EXPLODED,False,tick))
+                ##self.animations.addAnimation(AnimatedActions.BUILDING_EXPLODED,False,tick)
 
                 player.sides = 0
                 player.resources = 0
@@ -157,7 +125,7 @@ class Building():
 
 
     
-        def build(self,player):
+        def build(self,player,tick):
                 self.partialResources += 1
                 if self.partialResources==self.NoPartial :
                         self.partialResources=0
@@ -180,7 +148,8 @@ class Building():
 
                         if buildingLeveledUp:
                                 self.size = self.sides
-                                self.animations.addAnimation(AnimatedActions.BUILDING_UPGRADED,True)
+                                #self.animations.append((AnimatedActions.BUILDING_UPGRADED,True,tick))
+                                ##self.animations.addAnimation(AnimatedActions.BUILDING_UPGRADED,True,tick)
                 
 
         def isTrap(self):
@@ -194,8 +163,9 @@ class Building():
         def isPolyFactory(self):
                 return self.sides == 5
 
-        def hit(self):
-                self.animations.addAnimation(AnimatedActions.BUILDING_ATTACKED,False)
+        def hit(self,tick):
+                ##self.animations.addAnimation(AnimatedActions.BUILDING_ATTACKED,False,tick)
+                #self.animations.append((AnimatedActions.BUILDING_ATTACKED,False,tick))
                 if not (self.sides and self.resources):
                     return 0
                 elif self.resources:
