@@ -50,7 +50,7 @@ class Player():
                 direction = self.targetPosition-self.position
                 if(direction.length > 0.5):
                         if(direction.x==0):
-                                self.position += (dt * self.speed) * Vector2D(0,1 + -2*(direction.y<0))
+                                self.position += (dt * self.speed) * Vector2D(0 , 1 + -2*(direction.y<0))
                         elif(direction.y==0):
                                 self.position += (dt * self.speed) * Vector2D(1 + -2*(direction.x<0),0)
                         else:
