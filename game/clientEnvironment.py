@@ -29,7 +29,7 @@ class Environment(): #in an MVC system , this would be a controller
     ''' The environment class contains the state of the game. The server has the master version, the clients have slave versions (updated through the network) '''
     ATTACK_RADIUS = 3
     SCAN_RADIUS = 3
-    FPS=30
+    FPS=60
     
 
     def __init__(self,player_id,team,serverIP,serverPort):
@@ -77,6 +77,7 @@ class Environment(): #in an MVC system , this would be a controller
 		
     def makeRequest(self,action,Position):
         #print self.action
+        
         self.client.MakeRequest(self.playerID,self.team,action,Position)
         
         self.action = 0

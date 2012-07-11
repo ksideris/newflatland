@@ -55,7 +55,7 @@ class PlayerController(object):
     def go(self):
         self.previousTime = pygame.time.get_ticks()
         self._inputCall = LoopingCall(self._handleInput)
-        d = self._inputCall.start(0.03)
+        d = self._inputCall.start(0.06)
         return d
 
 
