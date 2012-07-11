@@ -86,8 +86,8 @@ class Environment(): #in an MVC system , this would be a controller
 		self.lastUpdate =time.time()
 		self.view.start('client-'+str(self.playerID))
 		self.client.start(self.serverIP,self.serverPort)
-                
-		os.remove(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1])
+                if os.path.exists(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1]):		
+                    os.remove(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1])
 		
 		self._renderCall = LoopingCall(self.Update) 
 		#self._requestCall = LoopingCall(self.makeRequest) 
