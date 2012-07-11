@@ -64,13 +64,14 @@ class Environment(): #in an MVC system , this would be a controller
         pass
 
     def updateTime(self):
-		self.Tick+=0.03
+		self.Tick+= 1.0/Environment.FPS
 		if( self.TimeLeft<=0):
 		    self.GameOver =True
             
     def Update(self):
 		self.deSerialize()
 		self.updateTime()
+		self.updatePositions()
 		self.readGestures()
 		self.view.paint(self.Tick )
 		
@@ -79,13 +80,20 @@ class Environment(): #in an MVC system , this would be a controller
         self.client.MakeRequest(self.playerID,self.team,action,Position)
         
         self.action = 0
-
+    
+    def updatePositions(self):
+            for playerId in self.players:
+                     
+                     if playerId <> self.playerID:
+                         self.players[playerId].updatePosition( 1.0/Environment.FPS)
+                     
     def start(self):
 		'''controls the environment by initiating the looping calls'''
 
 		self.lastUpdate =time.time()
 		self.view.start('client-'+str(self.playerID))
 		self.client.start(self.serverIP,self.serverPort)
+		
                 if os.path.exists(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1]):		
                     os.remove(CLIENTLOCALDATA.split('.')[0]+str(self.playerID)+'.'+CLIENTLOCALDATA.split('.')[1])
 		
@@ -112,12 +120,30 @@ class Environment(): #in an MVC system , this would be a controller
             if(state<>None):
                 t = state.split('$')
                 players =  pickle.loads(t[0]) #update players
-                self.players.clear()
-                for p in players.itervalues():                    
-                    self.players[id(p)] = p
-                    if p.player_id == self.playerID:
-                                p.position = Vector2D(self.Position)
-                                p.action = self.action
+                #self.players.clear()
+                
+                for p in players.itervalues():
+                    found =False
+                    pkey = 0
+                    for ep in self.players.itervalues():
+                        if ep.player_id == p.player_id :
+                            found=True
+                            pkey = id(ep)
+                            break
+                    if found:         
+                        self.players[pkey].sides = p.sides
+                        self.players[pkey].resources = p.resources
+                        self.players[pkey].partialResources = p.partialResources
+                        self.players[pkey].animations = p.animations
+                        
+                        if p.player_id == self.playerID:
+                                    self.players[pkey].position = Vector2D(self.Position)
+                                    self.players[pkey].action = self.action
+                        else:
+                            self.players[pkey].targetPosition = p.position
+                            self.players[pkey].action = p.action
+                    else:
+                        self.players[id(p)]=p
 
                 buildings =  pickle.loads(t[1]) #update buildings
                 self.buildings.clear()

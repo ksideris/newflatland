@@ -164,13 +164,14 @@ class Environment(): #in an MVC system , this would be a controller
         
 
         def handleAttack(self,player):
-                player.performAttack(self.Tick)  
-                for p in self.players.itervalues():
-                        if (p.team != player.team) and (p.getPosition() - player.getPosition()).length < Environment.ATTACK_DISTANCE:
-                                p.hit(self.Tick)
-                for b in self.buildings.itervalues():
-                        if (b.team != player.team) and (b.getPosition() - player.getPosition()).length < Environment.ATTACK_DISTANCE:
-                                b.hit(self.Tick)
+                if(player.sides>=3):
+                        player.performAttack(self.Tick)  
+                        for p in self.players.itervalues():
+                                if (p.team != player.team) and (p.getPosition() - player.getPosition()).length < Environment.ATTACK_DISTANCE:
+                                        p.hit(self.Tick)
+                        for b in self.buildings.itervalues():
+                                if (b.team != player.team) and (b.getPosition() - player.getPosition()).length < Environment.ATTACK_DISTANCE:
+                                        b.hit(self.Tick)
 
         def handleBuild(self,player):
                 ACTION = "BUILD"
