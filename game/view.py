@@ -93,46 +93,36 @@ class AnimatedActions():
                 self.player.scanRadius = 0
                 
         if(animtype == AnimatedActions.PLAYER_ATTACK): 
-                pygame.mixer.Channel(1).play(getSound("attack"))
-                self.animation.append("Attack")
+            pygame.mixer.Channel(1).play(getSound("attack"))
+            self.animation.append("Attack")
         elif(animtype == AnimatedActions.PLAYER_SCAN): 
-                pygame.mixer.Channel(1).play(getSound("scanning"))
-                self.animation.append("Scan")
+            pygame.mixer.Channel(1).play(getSound("scanning"))
+            self.animation.append("Scan")
         elif(animtype == AnimatedActions.PLAYER_BUILD): 
-                if not pygame.mixer.Channel(2).get_busy():
-                            pygame.mixer.Channel(2).play(getSound("mining"))
-                else:
-                            pygame.mixer.Channel(2).queue(getSound("mining"))
-                self.animation.append("mining")
-        elif(animtype == AnimatedActions.PLAYER_UPGRADE):
-            if not pygame.mixer.Channel(7).get_busy():
-                pygame.mixer.Channel(7).play(getSound("player upgrade")) 
-                pygame.mixer.Channel(2).stop()
-                self.animation.append("LevelUp")
-        elif(animtype == AnimatedActions.PLAYER_DOWNGRADE):
-            if not pygame.mixer.Channel(4).get_busy():
-                pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
-                self.animation.append("LevelUp")
-        elif(animtype == AnimatedActions.PLAYER_LOSE_RESOURCE): 
-            if not pygame.mixer.Channel(4).get_busy():
-                pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
-        elif(animtype == AnimatedActions.PLAYER_GAIN_RESOURCE): 
-            if not pygame.mixer.Channel(4).get_busy():
-                pygame.mixer.Channel(4).play(getSound("gain poly armor")) 
-        elif(animtype == AnimatedActions.BUILDING_ATTACKED): 
-                self.animation.append("BuildingAttacked")
-        elif(animtype == AnimatedActions.BUILDING_EXPLODED):
-            if not pygame.mixer.Channel(5).get_busy():
-                pygame.mixer.Channel(5).play(getSound("trigger trap"))
-            if not pygame.mixer.Channel(6).get_busy():
-                pygame.mixer.Channel(6).play(getSound("explosion")) 
-                self.animation.append("TrapExplosion")
-        elif(animtype == AnimatedActions.BUILDING_UPGRADED): 
-            if not pygame.mixer.Channel(7).get_busy():
-                pygame.mixer.Channel(7).play(getSound("finish building", 3), 0)
             if not pygame.mixer.Channel(2).get_busy():
-                pygame.mixer.Channel(2).stop()
-                self.animation.append("building upgraded")
+                pygame.mixer.Channel(2).play(getSound("mining"))
+               
+            self.animation.append("mining")
+        elif(animtype == AnimatedActions.PLAYER_UPGRADE):
+            pygame.mixer.Channel(7).play(getSound("player upgrade")) 
+            self.animation.append("LevelUp")
+        elif(animtype == AnimatedActions.PLAYER_DOWNGRADE):
+            pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
+            self.animation.append("LevelUp")
+        elif(animtype == AnimatedActions.PLAYER_LOSE_RESOURCE): 
+            pygame.mixer.Channel(4).play(getSound("lose poly armor")) 
+        elif(animtype == AnimatedActions.PLAYER_GAIN_RESOURCE): 
+            pygame.mixer.Channel(4).play(getSound("gain poly armor")) 
+        elif(animtype == AnimatedActions.BUILDING_ATTACKED): 
+            self.animation.append("BuildingAttacked")
+        elif(animtype == AnimatedActions.BUILDING_EXPLODED):
+            pygame.mixer.Channel(5).play(getSound("trigger trap"))
+            pygame.mixer.Channel(6).play(getSound("explosion")) 
+            self.animation.append("TrapExplosion")
+        elif(animtype == AnimatedActions.BUILDING_UPGRADED): 
+            pygame.mixer.Channel(7).play(getSound("finish building", 3), 0)
+            pygame.mixer.Channel(2).stop()
+            self.animation.append("building upgraded")
 
     def PlaySound(self,animtype):
         if(animtype == AnimatedActions.PLAYER_ATTACK): 
