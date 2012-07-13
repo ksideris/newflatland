@@ -137,7 +137,7 @@ class Environment(): #in an MVC system , this would be a controller
                         self.players[pkey].sides = p.sides
                         self.players[pkey].resources = p.resources
                         self.players[pkey].partialResources = p.partialResources
-                        self.players[pkey].animations = p.animations
+                        self.players[pkey].animations.extend(p.animations)
                         
                         if p.player_id == self.playerID:
                                     self.players[pkey].position = Vector2D(self.Position)
