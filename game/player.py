@@ -48,7 +48,6 @@ class Player():
                 return self.targetPosition 
         def updatePosition(self,dt):
                 direction = self.targetPosition-self.position
-                #print self.player_id,direction.length
                 if(direction.length > 0.5):
                         if(direction.x==0):
                                 self.position += (dt * self.speed) * Vector2D(0 , 1 + -2*(direction.y<0))
@@ -60,11 +59,9 @@ class Player():
         def hit(self,tick):
                 if self.resources:
                     self.resources -= 1
-                    self.animations.append((AnimatedActions.PLAYER_LOSE_RESOURCE,False,tick))
-                    #self.animations.addAnimation( AnimatedActions.PLAYER_LOSE_RESOURCE,False,tick)
+                    self.animations.append((AnimatedActions.PLAYER_LOSE_RESOURCE,True,tick,True))
                 else:
-                    self.animations.append((AnimatedActions.PLAYER_DOWNGRADE,False,tick))
-                    #self.animations.addAnimation( AnimatedActions.PLAYER_DOWNGRADE,False,tick)
+                    self.animations.append((AnimatedActions.PLAYER_DOWNGRADE,True,tick,True))
                     if self.sides>0:
                         self.sides -= 1 
                         if(self.sides>2):
@@ -75,31 +72,27 @@ class Player():
                         self.partialResources=0
                         if self.sides < 3:
                                 self.sides += 1
-                                self.animations.append((AnimatedActions.PLAYER_UPGRADE,True,tick))
-                                #self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True,tick)
+                                self.animations.append((AnimatedActions.PLAYER_UPGRADE,True,tick,True))
                         elif self.resources < self.sides:
                                 self.resources += 1
-                                self.animations.append((AnimatedActions.PLAYER_GAIN_RESOURCE,True,tick))
-                                #self.animations.addAnimation( AnimatedActions.PLAYER_GAIN_RESOURCE,False,tick)
+                                self.animations.append((AnimatedActions.PLAYER_GAIN_RESOURCE,True,tick,True))
+                               
         def upgrade(self,tick):
                 if(self.sides >= 3 and self.sides==self.resources and self.sides<6):
-                       self.animations.append((AnimatedActions.PLAYER_UPGRADE,True,tick))
-                       #self.animations.addAnimation( AnimatedActions.PLAYER_UPGRADE,True,tick)
+                       self.animations.append((AnimatedActions.PLAYER_UPGRADE,False,tick,True))
                        self.resources=0
                        self.sides+=1 
 
         def scan(self,tick):
                 if( self.sides >= 3):
-                         self.animations.append((AnimatedActions.PLAYER_SCAN,True,tick))
+                         self.animations.append((AnimatedActions.PLAYER_SCAN,True,tick,True))
         
         def performAttack(self,tick):
                 if( self.sides >= 3):
-                    self.animations.append((AnimatedActions.PLAYER_ATTACK,True,tick))
-                #self.animations.addAnimation(AnimatedActions.PLAYER_ATTACK,False,tick)
+                    self.animations.append((AnimatedActions.PLAYER_ATTACK,True,tick,True))
 
         def performBuild(self,tick):
-                self.animations.append((AnimatedActions.PLAYER_BUILD,True,tick))
-                #self.animations.addAnimation(AnimatedActions.PLAYER_BUILD,False,tick)
+                self.animations.append((AnimatedActions.PLAYER_BUILD,True,tick,True))
                         
                 
             

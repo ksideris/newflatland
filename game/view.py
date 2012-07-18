@@ -284,15 +284,25 @@ class Window(object):
             
     
     def updatePlayerAnimations(self,player,tick):
-        
         if not str(player.player_id) in self.playerAnimations:
             self.playerAnimations[str(player.player_id)] = AnimatedActions(player)
-
+        
         player_animatedActions =self.playerAnimations[str(player.player_id)]
             
-        for anim in player.animations:
-            player_animatedActions.addAnimation(anim[0],anim[1],tick)
-        player.animations = []    
+       #player_animatedActions.animation
+        
+        for idx,anim in enumerate(player.animations):
+            print anim[3] 
+            if (self.environment.IsServer and anim[3] ):
+                print 'aa'
+                player_animatedActions.addAnimation(anim[0],anim[1],tick)
+                
+                player.animations[idx] = (temp[0],temp[1],tick,False)
+                
+            elif not self.environment.IsServer:
+                player_animatedActions.addAnimation(anim[0],anim[1],tick)
+                player.animations = []
+                
         return     player_animatedActions
             
     def drawPlayer(self,player,position,isVisible,tick):

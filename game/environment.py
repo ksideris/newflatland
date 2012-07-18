@@ -267,6 +267,8 @@ class Environment(): #in an MVC system , this would be a controller
                 finally:
                         serv_db.close()
                 
+                for p in self.players:
+                        del self.players[p].animations[:]
         def readStateFromServer(self):
 
                 client_db = shelve.open(CLIENTDATA)
@@ -294,7 +296,6 @@ class Environment(): #in an MVC system , this would be a controller
                 #print self.actions   
 
         def cSerialize(self):
-
                 s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
                 pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)
                 
