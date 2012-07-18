@@ -158,7 +158,7 @@ class AnimatedActions():
                 pygame.mixer.Channel(2).stop()
 
                 
-    def drawAnimation(self,view, position ,tick):
+    def drawAnimation(self,view, position ,tick,visible):
         if(len(self.animation)==0):
                 return
         if(self.animation[0]=="Scan"):
@@ -175,8 +175,9 @@ class AnimatedActions():
                     self.animationCounter = 0 
                     self.animationLastFired = tick 
                     self.animation = self.animation[1:] 
-            self.player.scanRadius = radius             
-            view.images.images["PlayerScan"].drawScaled(view.screen, position, radius)
+            self.player.scanRadius = radius
+            if(visible):
+                view.images.images["PlayerScan"].drawScaled(view.screen, position, radius)
            
         else:    
         
@@ -190,7 +191,8 @@ class AnimatedActions():
                     #self.PlaySound(self.animation[0])
                     anim = view.images.images[self.animation[0]]
                     image = anim.getImage(self.animationCounter)
-                    image.draw(view.screen, position)
+                    if(visible):
+                        image.draw(view.screen, position)
                     if(tick-  self.animationLastFired>1.0/self.animationFps ):
                         self.animationCounter+=1       
     
@@ -299,7 +301,6 @@ class Window(object):
                 image = self.images.images["Player", player.team, player.sides]
                 image.draw(self.screen, position)
                 
-                self.updatePlayerAnimations(player,tick).drawAnimation(self,position,tick)
                     
                 
                 for i in range(0,player.resources):
@@ -309,12 +310,14 @@ class Window(object):
         else:
                 image = self.images.images["Enemy", player.team]
                 image.draw(self.screen, position)
-
+        
+        self.updatePlayerAnimations(player,tick).drawAnimation(self,position,tick,isVisible)
+        
     def drawBuilding(self,building,position,isVisible,tick):
         
         #building.animations.drawAnimation(self, position,tick)
         
-        self.updateBuildingAnimations(building,tick).drawAnimation(self,position,tick)
+        self.updateBuildingAnimations(building,tick).drawAnimation(self,position,tick,IsVisible)
         if not (building.sides and building.resources):
                 return 0
 
