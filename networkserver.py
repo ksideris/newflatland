@@ -1,7 +1,7 @@
 
 from game.network.server import Server
 
-print 'Server launched at: ','192.168.1.103:80'
-Server().start('192.168.1.103','80')
+print 'Server launched at: ','127.0.0.1:80'
+Server().start('127.0.0.1','80')
 
 

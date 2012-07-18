@@ -291,20 +291,23 @@ class Window(object):
             
        #player_animatedActions.animation
         
-        for idx,anim in enumerate(player.animations):
-            print anim[3] 
+        while (len(player.animations)>0):
+            
+            anim=player.animations.pop()
             if (self.environment.IsServer and anim[3] ):
-                print 'aa'
-                player_animatedActions.addAnimation(anim[0],anim[1],tick)
+                player_animatedActions.addAnimation(anim[0],anim[1],tick)                
+                player.animations.insert(0,  (anim[0],anim[1],tick,False))
                 
-                player.animations[idx] = (temp[0],temp[1],tick,False)
-                
+            elif self.environment.IsServer and not anim[3]:
+                print 'EOL'
+                break
             elif not self.environment.IsServer:
+                
                 player_animatedActions.addAnimation(anim[0],anim[1],tick)
-                player.animations = []
+                
                 
         return     player_animatedActions
-            
+        
     def drawPlayer(self,player,position,isVisible,tick):
 
         if isVisible:
@@ -323,7 +326,7 @@ class Window(object):
         
         self.updatePlayerAnimations(player,tick).drawAnimation(self,position,tick,isVisible)
         
-    def drawBuilding(self,building,position,isVisible,tick):
+    def drawBuilding(self,building,position,IsVisible,tick):
         
         #building.animations.drawAnimation(self, position,tick)
         
@@ -331,7 +334,7 @@ class Window(object):
         if not (building.sides and building.resources):
                 return 0
 
-        if isVisible:
+        if IsVisible:
                 
                 if building.sides:
                         self.images.images["Building", building.sides, building.team].draw(self.screen, position)

@@ -72,10 +72,10 @@ class Player():
                         self.partialResources=0
                         if self.sides < 3:
                                 self.sides += 1
-                                self.animations.append((AnimatedActions.PLAYER_UPGRADE,True,tick,True))
+                                self.animations.append((AnimatedActions.PLAYER_UPGRADE,False,tick,True))
                         elif self.resources < self.sides:
                                 self.resources += 1
-                                self.animations.append((AnimatedActions.PLAYER_GAIN_RESOURCE,True,tick,True))
+                                self.animations.append((AnimatedActions.PLAYER_GAIN_RESOURCE,False,tick,True))
                                
         def upgrade(self,tick):
                 if(self.sides >= 3 and self.sides==self.resources and self.sides<6):
@@ -84,7 +84,7 @@ class Player():
                        self.sides+=1 
 
         def scan(self,tick):
-                if( self.sides >= 3):
+                if( self.sides >= 3 and self.scanRadius==0 ):
                          self.animations.append((AnimatedActions.PLAYER_SCAN,True,tick,True))
         
         def performAttack(self,tick):

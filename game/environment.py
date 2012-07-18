@@ -262,13 +262,16 @@ class Environment(): #in an MVC system , this would be a controller
                 string =self.cSerialize()
                 
                 serv_db = shelve.open(SERVERDATA)
+                
                 try:
                         serv_db['data']= { 'time': str(time.time()), 'string': string }                      
                 finally:
                         serv_db.close()
                 
                 for p in self.players:
-                        del self.players[p].animations[:]
+                        if( len(self.players[p].animations) >10):
+                                self.players[p].animations = self.players[p].animations[1:]
+                                      
         def readStateFromServer(self):
 
                 client_db = shelve.open(CLIENTDATA)
