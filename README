@@ -3,14 +3,15 @@ Latest iteration of flatland
 
 Todo : 
 
-1. Clients need to properly restart after a reset has been raised
+1. TODO : (erase gameover letters) Clients need to properly restart after a reset has been raised
 2. Add documentation
-3. Clients could be smoother (maybe something in the update?)
-4. Benchmark networking, see how that goes, especially for phones
-5. test with positions been updated by the server
+3. DONE! Clients could be smoother (maybe something in the update?)
+4. DONE!  Benchmark networking, see how that goes, especially for phones (something is wrong on Macs)
+5. NO NEED-> test with positions been updated by the server
 6. investigate whether it is possible to initialize phone clients with an ssh command
-7. fix annoying mining effect
-8.in scanning, there needs to be more synchronization between client/server.although this could be an issue from 3
+7. DONE! fix annoying mining effect
+8. DONE, BUT SCANNING IS NOT PERFECT YET! in scanning, there needs to be more synchronization between client/server.although this could be an issue from 3
+8. REMOVE BUILDINGS COMPLETELY AFTER DESCTRUCTION
 
 
 

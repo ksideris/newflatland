@@ -62,4 +62,4 @@ class Server():
 
 if __name__ == '__main__':
 	s=Server()
-	s.start('127.0.0.1','7020')
+	s.start('192.168.1.103','80')

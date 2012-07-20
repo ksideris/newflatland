@@ -19,7 +19,7 @@ else:
     from game.actions_keyboard import PlayerController
     
 if (len(sys.argv) == 3):
-        tenv = environment.Environment(int(sys.argv[1]),int(sys.argv[2]),'127.0.0.1','80')
+        tenv = environment.Environment(int(sys.argv[1]),int(sys.argv[2]),'192.168.1.103','80')
         a=view.Window(tenv)
         
         controller = PlayerController(a)
