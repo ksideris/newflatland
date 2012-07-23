@@ -35,7 +35,7 @@ class Environment(): #in an MVC system , this would be a controller
         FPS=30
         ATTACK_DISTANCE =3
         BUILDING_DISTANCE =6
-        GAME_DURATION = 15*60#15 seconds #15 * 60 # 15 minutes
+        GAME_DURATION = 10#15 seconds #15 * 60 # 15 minutes
     
         def __init__(self):
                 '''State: Players,Buildings, Time, Resourse Pool'''
@@ -87,6 +87,9 @@ class Environment(): #in an MVC system , this would be a controller
         def StartGame(self):
                 self.Tick=0
                 self.GameStarted=True
+                self.GameOver = False
+                self.TrueTimeLeft=Environment.GAME_DURATION
+                self.TimeLeft = int(self.TrueTimeLeft)
                 for playerId in self.players:
                      self.players[playerId].sides=3
                      self.players[playerId].resources=0
@@ -287,56 +290,15 @@ class Environment(): #in an MVC system , this would be a controller
                         
                 finally:
                         client_db.close()
-                '''  
-                try:
-
-                        
-                        actionFile =  open( "ServerOut.p", "rb" )         
-                        self.actions     = pickle.load(  actionFile )
-                        actionFile.close()
-                        actionFile =  open( "ServerOut.p", "wb" )     
-                        pickle.dump( [],  actionFile )
-                        actionFile.close()
-                       
-                except Exception:
-                        print 'env1',sys.exc_info()[0]
-                '''
-                #print self.actions   
 
         def cSerialize(self):
                 s=pickle.dumps(self.players)+'$'+pickle.dumps(self.buildings)+'$'+\
-                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)
+                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)+'$'+str(self.GameOver)  
                 
                 #print len(s),s         
                 return s
 
         
-        def dSerialize(self):
-                s=''
-                for p in self.players.itervalues():
-                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.getPosition())+'&'+str(p.sides)+'&'+str(p.resources )+'$'+str(p.partialResources )+'&'+str(p.animations)+'$'
-                        
-                s+='$'+pickle.dumps(self.buildings)+'$'+\
-                pickle.dumps(self.ResourcePool)+'$'+pickle.dumps(self.scores)+'$'+str(self.TimeLeft)+'$'+str(self.Tick)
-                
-                #print len(s),s         
-                return s
-
-        def _serialize(self):
-                s =''
-                for p in self.players.itervalues():
-                        s+= pickle.dumps(p)+'$'
-                for b in self.buildings.itervalues():
-                        s+= pickle.dumps(b)+'$'
-                
-                return s
-        def Serialize(self):
-                s=''
-                for p in self.players.itervalues():
-                        s+= str(p.player_id)+'&'+str(p.team)+'&'+str(p.position)+'&'+str(p.sides)+'&'+str(p.resources )+'$'+str(partialResources.resources )+'&'+str(p.action)+'$'
-                for b in self.buildings.itervalues():
-                        s+= str(b.sides)+'&'+str(b.team)+'&'+str(b.position)+'&'+str(b.sides)+'&'+str(b.resources )+'$'
-        
-                return s
+     
         
  

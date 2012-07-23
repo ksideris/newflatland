@@ -68,8 +68,8 @@ class Environment(): #in an MVC system , this would be a controller
 
     def updateTime(self):
 		self.Tick+= 1.0/Environment.FPS
-		if( self.TimeLeft<=0):
-		    self.GameOver =True
+		#if( self.TimeLeft<=0):
+		#    self.GameOver =True
             
     def Update(self):
 		self.deSerialize()
@@ -159,7 +159,7 @@ class Environment(): #in an MVC system , this would be a controller
                 self.ResourcePool = pickle.loads(t[2])
                 self.scores =pickle.loads(t[3])
                 self.TimeLeft =int(t[4])
-                #if(abs(self.Tick-float(t[5]) ) > 1):
-                #    
-                #self.Tick =float(t[5])
- 
+                
+               
+                self.GameOver = not bool(t[6]) #weird
+              

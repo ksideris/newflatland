@@ -412,6 +412,7 @@ class Window(object):
         self.screen.blit(text,textrect)
 
         #GAMEOVER
+        
         if self.environment.GameOver:
             endGameMessage = ""
             if self.environment.IsServer:
