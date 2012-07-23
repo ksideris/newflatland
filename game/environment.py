@@ -1,14 +1,19 @@
-'''
-Environment contains all the higher level state of the game.
-Naturally, the server keeps one, but each client/player has
-there own copy as well.
+#!/usr/bin/env python
 
-* It contains the top level paint function [!!!] This is where the HUD is generated and drawn
-* It is where network messages are received, and passed along to the player module
-NOTE: All the network functions come in pairs, the function name, and observe_<function name>
-You call the un-prefixed function, if you are the originator of some state change, and subsequently
-the observe_ prefixed function will get called by all the other players, server etc...
-'''
+""" environment.py: Environment contains all the higher level state of the game.
+This is the server version. The relation between server-client is a master/slave
+one. That is the client reads the current state and updates itself. It also
+notifies the server of any client side events (actions /position updates)
+
+"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
+
+
+
+
 
 import pygame
 from vector import Vector2D

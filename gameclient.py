@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+
+"""gameclient.py: Script to launch a game client.
+    Need to be invoked as follows:
+    python gameclient.py player_id team
+    TODO: make the server location more configurable
+"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
 import pygame
 import game.view as view
 import game.clientEnvironment as environment
@@ -19,7 +30,8 @@ else:
     from game.actions_keyboard import PlayerController
     
 if (len(sys.argv) == 3):
-        tenv = environment.Environment(int(sys.argv[1]),int(sys.argv[2]),'192.168.1.103','80')
+        tenv = environment.Environment(int(sys.argv[1]),int(sys.argv[2]),\
+                                       '192.168.130.1','80')
         a=view.Window(tenv)
         
         controller = PlayerController(a)

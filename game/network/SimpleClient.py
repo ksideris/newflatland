@@ -1,5 +1,15 @@
 
 
+#!/usr/bin/env python
+
+"""SimpleClient.py: simple http client.NOT USED anymore
+"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
+
+
 import httplib,pickle,time,sys
 import shelve
 SHOW_STATISTICS =False

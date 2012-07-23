@@ -1,3 +1,16 @@
+
+#!/usr/bin/env python
+
+"""view.py: Manages all GUI and sound related functions.
+    Every client has one , as well as the server.
+    The update function is Window.paint and is called by the environment
+"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
+
+
 # Python
 from collections import deque
 

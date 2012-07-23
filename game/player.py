@@ -1,14 +1,13 @@
-'''
-This file includes the player, the buildings, and the resource pool.
 
-Drawing, sound playing, and the various player/building state is contained here.
+#!/usr/bin/env python
 
-In regards to sound playing, you will notice that most functions have a playSound function.
-This is present because when you're testing, and have the player and the server running
-on the same computer, both the servers copy of the player, and the clients copy of the player
-will attempt to play the sound, and since the computer only has one mixer, it doesn't really
-work, and thus, sounds only play for the client.
-'''
+"""player.py: This file includes the player, the buildings, and the resource pool.
+"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
+
 
 import math
 import pygame.mixer

@@ -1,3 +1,14 @@
+
+#!/usr/bin/env python
+
+"""AsyncClient.py: asynchronous networking client"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
+
+
+
 import asyncore, socket,pickle,time,string
 import shelve
 SHOW_STATISTICS =False

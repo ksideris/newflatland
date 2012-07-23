@@ -19,7 +19,11 @@ It has been tested under Windows, Linux and Mac and it written entirely in pytho
 
 
 
+you can run the game as following:
 
+python gameserver.py //initializes the server game logic
+python networkserver.py //initializes the network server
+python gameclient 'player_id' 'team_id' to run a client
 
 
 Todo : 
@@ -32,8 +36,8 @@ Todo :
 6. investigate whether it is possible to initialize phone clients with an ssh command
 7. DONE! fix annoying mining effect
 8. DONE, BUT SCANNING IS NOT PERFECT YET! in scanning, there needs to be more synchronization between client/server.although this could be an issue from 3
-8. REMOVE BUILDINGS COMPLETELY AFTER DESCTRUCTION
-
+9. REMOVE BUILDINGS COMPLETELY AFTER DESCTRUCTION
+10. Make server settings more easily configurable
 
 
 	

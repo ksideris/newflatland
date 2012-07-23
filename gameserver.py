@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+
+"""gameserver.py: Script to launch the game logic server."""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
 import pygame
 import game.view as view
 import game.environment as environment

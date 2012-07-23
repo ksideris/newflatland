@@ -1,6 +1,15 @@
+
 #!/usr/bin/env python
-#
-# The core networking module. Transmits the serialized state to the clients-phones and reads their
+
+"""server.py: The core networking module. Transmits the serialized state to the clients-phones and reads their states.
+
+"""
+
+__author__      = "Konstantinos Sideris"
+__copyright__   = "Copyright 2012, UCLA game lab"
+
+
+
 
 import logging
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
