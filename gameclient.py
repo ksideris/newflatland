@@ -31,7 +31,7 @@ else:
     
 if (len(sys.argv) == 3):
         tenv = environment.Environment(int(sys.argv[1]),int(sys.argv[2]),\
-                                       '192.168.130.1','80')
+                                       '192.168.1.102','80')
         a=view.Window(tenv)
         
         controller = PlayerController(a)

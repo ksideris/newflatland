@@ -45,7 +45,7 @@ class Environment(): #in an MVC system , this would be a controller
 		self.view =None
 		self.GameOver =False
 		self.playerID =player_id
-		
+		self.player = None
 		self.action = 0
 		self.attemptedAction = 0
 		self.lastAction = 0
@@ -64,8 +64,76 @@ class Environment(): #in an MVC system , this would be a controller
                 self.lastUpdate = 0
 
     def readGestures(self):
-        pass
+     
+            if(self.player.action == Player.ATTACK): #ATTACK
+                                self.handleAttack()
 
+            elif(self.player.action == Player.BUILD): #building
+                                self.handleBuild()
+
+            elif(self.player.action == Player.UPGRADE): #building
+                                self.handleUpgrade()
+
+            elif(self.player.action == Player.SCAN): #building
+                                self.handleScan()
+
+            elif(self.player.action == Player.IDLE):
+                                self.handleIdle()
+                                              
+           ## for b in self.buildings.itervalues():
+            ##            if   (b.getPosition() - self.player.getPosition()).length < b.size and b.isTrap() and b.team<>self.player.team:         
+             ##                           b.explode(self,self.Tick)   
+        
+
+    def handleAttack(self):
+                if(self.player.sides>=3):
+                        self.player.performAttack(self.Tick)  
+                       
+    def handleBuild(self):
+                ACTION = "BUILD"
+                if((self.ResourcePool.getPosition()-self.player.getPosition()).length< self.ResourcePool.size):
+                        ACTION ="MINE"
+                else:
+                        for b in self.buildings.itervalues():
+                                
+                                if(b.team == self.player.team and b.isPolyFactory() and b.resources == 5 and (b.getPosition()- player.getPosition()).length <b.size):
+                                        ACTION ="MINE"
+                                        break      
+                if( ACTION =="MINE"):
+                        self.player.performBuild(self.Tick)  
+                        
+                                         
+                else:
+                        if(self.player.resources>0):
+                                BUILDING =None
+                                for b in self.buildings.itervalues():
+                                        if   (b.getPosition() - self.player.getPosition()).length < b.size:
+                                                BUILDING =b
+                                                break
+                                
+
+                                if BUILDING.team ==self.player.team:
+                                        self.player.performBuild(self.Tick) 
+        
+    def handleUpgrade(self):
+                allowedUpgradeLoc = False
+                if((self.ResourcePool.getPosition()-self.player.getPosition()).length< self.ResourcePool.size):
+                        allowedUpgradeLoc=True
+                else:
+                        for b in self.buildings.itervalues():
+                                if(b.team == self.player.team and b.isPolyFactory() and b.resources == 5 and (b.getPosition()- self.player.getPosition()).length <b.size): 
+                                        allowedUpgradeLoc=True
+                                        break
+                if(allowedUpgradeLoc):
+                       self.player.upgrade(self.Tick) 
+
+    def handleScan(self):
+             self.player.scan(self.Tick)    
+
+    def handleIdle(self):
+
+             pass  
+      
     def updateTime(self):
 		self.Tick+= 1.0/Environment.FPS
 		#if( self.TimeLeft<=0):
@@ -75,13 +143,16 @@ class Environment(): #in an MVC system , this would be a controller
 		self.deSerialize()
 		self.updateTime()
 		self.updatePositions()
-		self.readGestures()
+		#self.readGestures()
 		self.view.paint(self.Tick )
                 
 		
     def makeRequest(self,action,Position):
         #print self.action
-        
+        if self.player:
+            self.player.action = action
+            self.player.position = Position
+            self.readGestures()
         self.client.MakeRequest(self.playerID,self.team,action,Position)
         
         self.action = 0
@@ -127,27 +198,38 @@ class Environment(): #in an MVC system , this would be a controller
                 t = state.split('$')
                 players =  pickle.loads(t[0]) #update players
                 #self.players.clear()
-                
+                                      
                 for p in players.itervalues():
                     found =False
                     pkey = 0
-                    for ep in self.players.itervalues():
-                        if ep.player_id == p.player_id :
-                            found=True
-                            pkey = id(ep)
-                            break
-                    if found:         
-                        self.players[pkey].sides = p.sides
-                        self.players[pkey].resources = p.resources
-                        self.players[pkey].partialResources = p.partialResources
-                        self.players[pkey].animations.extend(p.animations)
+                    if p.player_id == self.playerID and self.player==None:
+                        self.player = p
+                        self.players[id( self.player)] = self.player
                         
+                      
+                    for ep in self.players.itervalues():
+                            
+                        if ep.player_id == p.player_id:
+                               
+                                found=True
+                                pkey = id(ep)
+                                break
+                    if found:
                         if p.player_id == self.playerID:
-                                    self.players[pkey].position = Vector2D(self.Position)
-                                    self.players[pkey].action = self.action
+                                   
+                                    self.players[pkey].position = self.player.position
+                                    self.players[pkey].action = self.player.position
+
                         else:
                             self.players[pkey].targetPosition = p.position
                             self.players[pkey].action = p.action
+                            self.players[pkey].animations.extend(p.animations)
+
+                        self.players[pkey].sides = p.sides
+                        self.players[pkey].resources = p.resources
+                        self.players[pkey].partialResources = p.partialResources
+
+                        
                     else:
                         self.players[id(p)]=p
 
